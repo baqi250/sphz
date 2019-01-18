@@ -1,0 +1,82 @@
+/* 绛涢�� */
+
+@media (max-width: 770px) {
+    .box-select-item {
+        margin: 10px 0;
+    }
+}
+
+.box-mutiselect {
+    display: inline-block;
+}
+
+@media (min-width: 1380px) {
+    .box-mutiselect {
+        width: 74%;
+    }
+}
+
+@media (max-width: 1380px) {
+    .box-mutiselect {
+        width: 90%;
+    }
+}
+
+
+/* 鎼滅储妗� */
+
+.box-search {
+    width: 100%;
+}
+
+@media (min-width: 1040px) {
+    .box-search {
+        width: 100%;
+        padding: 10px 120px 0 10px;
+    }
+}
+
+@media (max-width: 1040px) and (min-width: 770px) {
+    .box-search {
+        width: 100%;
+        padding: 10px 60px 0 10px;
+    }
+}
+
+@media (max-width: 770px) {
+    .box-search {
+        width: 100%;
+        padding: 10px 10px 0 10px;
+    }
+}
+
+
+/* 琛ㄦ牸鎸夐挳 */
+
+.table-badge {
+    margin: 0 6px;
+    cursor: pointer;
+}
+
+.bg-disabled {
+    background-color: #d2d6de !important;
+}
+
+.table-check {
+    margin-right: 6px;
+}
+
+
+/* 瀛愯〃鏍� */
+
+.table-child {
+    margin-left: 20px;
+    width: 98%;
+}
+
+.table-child-middle {
+    border-right: 3px double #d2d6de;
+}
+.statusselected{
+	background-color: #0bf6e5;
+}

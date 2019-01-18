@@ -1,0 +1,40 @@
+package com.lggh.controller.photo360;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.lggh.controller.base.BaseController;
+import com.lggh.entity.Page;
+import com.lggh.service.photo360.impl.PhotoServiceImpl;
+import com.lggh.util.AppUtil;
+import com.lggh.util.PageData;
+
+@Controller
+@RequestMapping("/photos")
+public class PhotoController extends BaseController {
+	@Resource(name="photoService")
+	PhotoServiceImpl photoServiceImpl;
+	
+	@ResponseBody
+	@RequestMapping("/pointslist")
+	public Object getPoint(Page page){
+		Map<String,List> map  = new HashMap<String, List>();
+		PageData pd = new PageData();
+		page.setPd(pd);
+		try {
+			List<PageData> list = photoServiceImpl.listData(page);
+			map.put("photos", list);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}	
+		return AppUtil.returnObject(pd, map);
+	}
+}

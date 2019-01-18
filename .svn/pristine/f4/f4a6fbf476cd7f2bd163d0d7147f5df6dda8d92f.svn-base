@@ -1,0 +1,10 @@
+package com.lggh.service.map;
+
+import java.util.List;
+
+import com.lggh.entity.Page;
+import com.lggh.util.PageData;
+
+public interface MapService {
+	public List<PageData> listData(PageData pd)throws Exception;
+}

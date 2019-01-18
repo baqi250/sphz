@@ -1,0 +1,92 @@
+<!DOCTYPE>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta http-equiv="x-ua-compatible" content="IE=11"/>
+    <title>规划一张图</title>
+    <script>
+        var getWebRootPath = function(){
+            //获取当前网址，如： http://localhost:8083/uimcardprj/share/meun.jsp
+            var curWwwPath=window.document.location.href;
+            //获取主机地址之后的目录，如： uimcardprj/share/meun.jsp
+            var pathName=window.document.location.pathname;
+            var pos=curWwwPath.indexOf(pathName);
+            //获取主机地址，如： http://localhost:8083
+            var localhostPaht=curWwwPath.substring(0,pos);
+            //获取带"/"的项目名，如：/uimcardprj
+            var projectName=pathName.substring(0,pathName.substr(1).indexOf('/')+1);
+            return(localhostPaht+projectName);
+        };
+        var path = getWebRootPath();
+        var dojoConfig={
+            parseOnLoad:true,
+            cacheBust:true,
+            packages: [{
+                "name": "myModules",
+                "location": path + "/map/js"
+            },
+            {
+                "name": "jquery",
+                "location": path + "/plugins/jquery"
+            },
+            {
+                "name": "bootstrap",
+                "location": path + "/plugins/bootstrap"
+            },
+            {
+                "name": "echarts",
+                "location": path + "/plugins/echarts"
+            },
+            {
+            	"name":"ztree",
+            	"location": path+"/plugins/zTree/3.5"
+            },
+            {
+            	"name":"arcgis",
+            	"location": path+"/plugins/ArcGIS/3.17"
+            }]
+        };
+
+    </script>
+    <link href="css/myStyle.css" rel="stylesheet" />    
+    <link href="css/chosen.css" rel="stylesheet" />    
+    <link href="css/whmaptoolbar.css" rel="stylesheet" />  
+    <link rel="stylesheet" href="../plugins/xha/plugins/font-awesome/css/font-awesome.min.css">  
+    <link rel="stylesheet" type="text/css" href="css/download/font_hi5rvie3kbp/iconfont.css">
+    <link href="../plugins/zTree/3.5/css/metroStyle/metroStyle.css" media="screen" rel="stylesheet" type="text/css" />
+    <link href="../plugins/ArcGIS/3.17/esri/css/esri.css" rel="stylesheet" type="text/css" />
+    <link href="../plugins/ArcGIS/3.17/dijit/themes/claro/claro.css" rel="stylesheet" type="text/css" />
+    <link href="../plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" /> 
+    <link href="../plugins/bootstrap/fileinput/css/fileinput.css" rel="stylesheet" type="text/css" /> 
+     <link href="../plugins/bootstrap/fileinput/css/fileinput-rtl.css" rel="stylesheet" type="text/css" /> 
+    <link href="../plugins/jquery/jquery-ui-1.12.0/jquery-ui.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript" src="../plugins/jquery/jquery.js"></script>
+    <script type="text/javascript" src="../plugins/jquery/jquery-ui.js"></script>
+    <script type="text/javascript" src="../plugins/bootstrap/js/bootstrap.js"></script>
+    <script type="text/javascript" src="../plugins/ArcGIS/3.17/init.js"></script>
+
+    <script type="text/javascript">
+    <!--解决缓存问题 -->
+           document.write("<script type='text/javascript' src='js/map-init.js?rnd="+Math.random()+"'><\/script>");
+    </script>
+    
+   	<script type="text/javascript">	   
+   		function openPDF(){
+	        // var url="/pdfjsDemo/demo.pdf";
+	         window.open("../resources/pdf/pdfjs/web/viewer.html?file=test1.pdf");
+   		}
+		
+    </script> 
+</head>
+
+<body class="claro" style="overflow:hidden;">
+    <div class=main-container>
+	    <div class="layer-tree">
+		    <div id="treeDiv" style="padding-top:5px; width:260px;"></div>
+	    </div> 
+	    <div id="tools" style="position:absolute;  z-index:2;top:10px; right:10px;"></div> 
+	    <div id="infoDiv" title="数据属性"></div> 
+	    <div id="map" style="height:100%; z-index: 1;"></div>	
+    </div>
+</body>  
+</html>

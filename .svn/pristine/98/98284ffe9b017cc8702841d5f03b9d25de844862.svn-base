@@ -1,0 +1,23 @@
+package com.lggh.service.map.impl;
+
+import java.util.List;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+
+import com.lggh.dao.DaoSupport;
+import com.lggh.entity.Page;
+import com.lggh.service.map.MapService;
+import com.lggh.util.PageData;
+
+@Service("mapService")
+public class MapServiceImpl implements MapService {
+	@Resource(name = "daoSupport")
+	private DaoSupport dao;
+	@Override
+	public List<PageData> listData(PageData pd) throws Exception {
+		return (List<PageData>)dao.findForList("MapMapper.listData", pd);
+	}
+
+}

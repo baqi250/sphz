@@ -1,0 +1,43 @@
+﻿ <!-- Left side column. contains the logo and sidebar -->
+        <aside class="main-sidebar">
+
+            <!-- sidebar: style can be found in sidebar.less -->
+            <section class="sidebar">
+
+                <!-- Sidebar Menu -->
+                <ul class="sidebar-menu" data-widget="tree">
+                    <li class="header">功能菜单</li>
+                   <!--  <li class="treeview"><a style="cursor: pointer;" onclick="js_method('login_default.do');"><i class="fa fa-television"></i> <span> 系统首页</span></a></li> -->
+                		<c:forEach items="${sphzMenuList}" var="menu1">
+                			<c:if test="${menu1.hasMenu}">
+							<c:choose>
+								<c:when test="${'#' == menu1.MENU_URL}">
+									<li class="treeview">
+										<a href="#">
+											<i class="${menu1.MENU_ICON }"></i> <span>${menu1.MENU_NAME }</span>
+											<span class="pull-right-container">
+													<i class="fa fa-angle-left pull-right"></i>
+											</span>
+										</a>
+										<ul class="treeview-menu">
+											<c:forEach items="${menu1.subMenu}" var="menu2">
+												<c:if test="${menu2.hasMenu}">
+													<li><a a style="cursor: pointer;" onclick="js_method('${menu2.MENU_URL }');"><i class="${menu2.MENU_ICON }"></i>${menu2.MENU_NAME } </a></li>
+												</c:if>
+											</c:forEach>
+										</ul>
+									</li>
+								</c:when>
+								<c:otherwise>
+									<li><a style="cursor: pointer;" onclick="js_method('${menu1.MENU_URL }');"><i class="${menu1.MENU_ICON }"></i> <span> ${menu1.MENU_NAME }</span></a></li>
+								</c:otherwise>
+							</c:choose>
+							</c:if>
+						</c:forEach>
+                 
+                <!-- /.sidebar-menu -->
+            </section>
+            <!-- /.sidebar -->
+        </aside>
+        
+        		

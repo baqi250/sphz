@@ -1,0 +1,112 @@
+/**
+ * Created by zhl on 18-3-9.
+ */
+var mapApp = new Object();
+//全局变量记录地图上的矢量图层url,用于点击查询
+mapApp.dynamicLayersUrls=[];
+mapApp.tiledLayersUrls=[];
+mapApp.layerNames=[];
+require([
+    "esri/config",
+    "esri/basemaps",
+    "esri/map",
+    "esri/SpatialReference",
+    "esri/layers/ArcGISTiledMapServiceLayer",
+    "myModules/interface",
+    "myModules/config/layerConfig",
+    "myModules/innerPubFun",
+    "esri/geometry/Extent",
+    "esri/dijit/Legend",
+    "esri/dijit/Search",
+    "esri/InfoTemplate",
+    "esri/layers/FeatureLayer",
+    "esri/tasks/QueryTask",
+    "esri/tasks/query",
+    "esri/tasks/FeatureSet",
+    "dojo/dom",
+    "esri/geometry/Point",
+    "esri/symbols/SimpleMarkerSymbol",
+    "dojo/domReady!"
+],
+    function(esriConfig,esriBaseMaps,Map,SpatialReference,ArcGISTiledMapServiceLayer,Interface,LayerConfig,innerPubFun,Extent,Legend,Search,InfoTemplate,FeatureLayer,QueryTask,Query,FeatureSet,dom,Point,SimpleMarkerSymbol,domReady){
+	var baseTiledLayer=new ArcGISTiledMapServiceLayer(mapApp.layerConfig.domMapUrl);  
+        esriBaseMaps.basemap={
+            baseMapLayers:[],
+            title:"影像地图",
+            id:"domMap"
+        };
+	    var bounds=new Extent({
+	    	"xmin": 208727.315,
+	    	"ymin": 88862.532,
+	    	"xmax": 219439.533,
+	    	"ymax": 100161.491,
+	    	"spatialReference": new SpatialReference('PROJCS["Xian_1980_3_Degree_GK_CM_120E",GEOGCS["GCS_Xian_1980",DATUM["D_Xian_1980",SPHEROID["Xian_1980",6378140.0,298.257]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Gauss_Kruger"],PARAMETER["False_Easting",200048.066],PARAMETER["False_Northing",-3889958.45],PARAMETER["Central_Meridian",120.0],PARAMETER["Scale_Factor",1.0],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]')
+	    	//"spatialReference": 2385
+	    });
+        mapApp.map=new Map("map",{
+        	basemap:"",
+        	/*minZoom:9,
+        	maxZoom:11,*/
+        	extent:bounds,
+            logo:false,
+            nav:false,
+            slider:false
+        });        
+        //debugger;
+        var values;       
+        var addresses = [];
+        var features = [];
+		var query = new Query();
+	    //var queryTask = new QueryTask("http://192.168.109.111:6080/arcgis/rest/services/lsgg/POI_lgn/FeatureServer/0");//dk服务器上的服务
+	    //var queryTask2 = new QueryTask("http://192.168.109.111:6080/arcgis/rest/services/lsgg/POI_lgw/FeatureServer/0");   //dk服务器上的服务
+		var queryTask2 = new QueryTask("http://192.168.109.111:6080/arcgis/rest/services/lsgg/POI_lgw/FeatureServer/0");
+	   // query.where = "1=1";
+	    query.returnGeometry = true;
+	    query.outFields =  ["*"];
+	    function setSource(addresses){
+	    	$("#autocomplete").autocomplete({
+        		source: addresses
+        	}); 
+	    }
+	    //按钮绑定execute事件
+	    dojo.connect(dom.byId("execute"),"click",execute);
+	    dojo.connect(dom.byId("autocomplete"),"input",change);
+	    function change(){
+	    	addresses = [];
+	    	features = [];
+	    	values = $("#autocomplete").val();
+	    	if(values!=null && values!= ""){
+	    		query.where = "NAME like '%"+values+"%'";
+	    		//queryTask.execute(query,showResults);
+		    	queryTask2.execute(query,showResults);
+	    	}	    	    	
+	    }
+        function execute(){
+        	mapApp.map.graphics.clear();
+        	values = $("#autocomplete").val();
+        	for(var i=0;i<addresses.length;i++){
+        		if($.trim(values)==$.trim(addresses[i])){
+        			var point=new Point(features[i].geometry.x,features[i].geometry.y,mapApp.map.spatialReference);
+        			mapApp.map.centerAndZoom(point,8);
+        			//console.log(features[i]);
+        			features[i].setSymbol(new SimpleMarkerSymbol());
+					mapApp.map.graphics.add(features[i]);
+        		}
+        	}
+         }
+        function showResults(results){        	
+        	//console.log(results);       	
+        	var resultCount = results.features.length;
+        	features = features.concat(results.features);
+        	//features = results.features;
+        	for(var i=0;i<resultCount;i++){
+        		addresses.push(features[i].attributes.NAME);
+        	}
+        	setSource(addresses);      	
+        }
+        //显示Ztree,控制图层的显示与隐藏，及调整图层顺序
+        mapApp.showTree();
+        //显示图层工具条，暂用于搜索图层及显示图例
+        mapApp.showTool();
+        
+    });

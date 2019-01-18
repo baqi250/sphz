@@ -1,0 +1,47 @@
+package com.lggh.entity.system;
+
+import java.util.List;
+/**
+ * 
+* 类名称：菜单
+* 类描述： 
+* @author DK
+* 作者单位： 
+* 联系方式：
+* 创建时间：2015年7月27日
+* @version 2.0
+ */
+public class DicTreeSelect {
+	
+	private String DICTIONARIES_ID;		//数据字典ID
+	private String NAME;	//数据字典名称
+	private List<DicTreeSelect> subDic;//数据字典子项
+	
+	
+	public String getDICTIONARIES_ID() {
+		return DICTIONARIES_ID;
+	}
+
+	public void setDICTIONARIES_ID(String dICTIONARIES_ID) {
+		DICTIONARIES_ID = dICTIONARIES_ID;
+	}
+
+	public String getNAME() {
+		return NAME;
+	}
+
+	public void setNAME(String nAME) {
+		NAME = nAME;
+	}
+
+	public List<DicTreeSelect> getSubDic() {
+		return subDic;
+	}
+
+	public void setSubDic(List<DicTreeSelect> subDic) {
+		this.subDic = subDic;
+	}
+
+	
+	
+}

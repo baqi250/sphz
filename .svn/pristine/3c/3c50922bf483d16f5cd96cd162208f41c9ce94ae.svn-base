@@ -1,0 +1,201 @@
+/**
+ * Created by zhl on 18-3-13.
+ */
+
+define(["dojo/_base/declare", "esri/layers/FeatureLayer","esri/layers/ArcGISDynamicMapServiceLayer","esri/layers/ArcGISTiledMapServiceLayer",
+        "esri/geometry/Point","esri/geometry/Extent","esri/SpatialReference"],
+    function (declare, FeatureLayer,ArcGISDynamicMapServiceLayer,ArcGISTiledMapServiceLayer,Point,Extent,SpatialReference) {
+        var h = declare("StaticLayer", null, {
+            map: new Object(),
+            constructor: function (map, queryUrl) {
+                this.map = map;
+            },
+            /**
+             * 移除图层
+             * @param layerName
+             */
+            removeLayer: function (layerName) {
+                var map = this.map;
+                if (map.getLayer(layerName)){
+                	map.removeLayer(map.getLayer(layerName));
+                	//从全局变量中移除
+                	for(var i=0;i<mapApp.dynamicLayersUrls.length;i++){
+                		if(mapApp.dynamicLayersUrls[i].layerId==layerName)
+                		mapApp.dynamicLayersUrls.splice(i,1);
+                	}	
+                }
+                    
+            },
+            /**
+             * 图层居中
+             * @param layerName
+             */
+            zoomLayerToCenter:function(layerName){
+            	var map=this.map;
+            	if(map.getLayer(layerName)){
+	            	var center= map.getLayer(layerName).initialExtent.getCenter();
+	            	var point=new Point(center.x,center.y,map.spatialReference);
+	            	map.centerAt(point);
+            	}
+            },
+            /**
+             * FeatureLayer
+             * @param featureLayerUrl 服务url
+             */
+            showFeatureLayer: function (featureLayerUrl,layerName) {
+                var map = this.map;
+                var featureLayer = new FeatureLayer(featureLayerUrl, {
+                    id: layerName,
+                    mode:FeatureLayer.MODE_SNAPSHOT
+                });
+                map.addLayer(featureLayer); 
+            }, 
+            /**
+             * DynamicMapService
+             * @param DynamicMapServiceUrl 服务url
+             */
+            showDynamicMapService: function (DynamicMapServiceUrl,layerName) {
+                var map = this.map;
+                var DynamicMapService = new ArcGISDynamicMapServiceLayer(DynamicMapServiceUrl, {
+                    id: layerName
+                });
+                map.addLayer(DynamicMapService); 
+               //存入全局变量
+        		var larerInfo={
+        			layerUrl:DynamicMapServiceUrl,
+        			layerName:null,
+        			layerId:layerName,
+        			layer:DynamicMapService
+        		}
+        		mapApp.dynamicLayersUrls.push(larerInfo);
+            }, 
+            /**
+             * TiledMapService
+             * @param TiledMapServiceUrl 服务url
+             */
+            //showTiledMapService: function (TiledMapServiceUrl,layerName,dataUrl) {
+            showTiledMapService: function (TiledMapServiceUrl,layerName) {
+                var map = this.map;
+                var TiledMapService = new ArcGISTiledMapServiceLayer(TiledMapServiceUrl, {
+                    id: layerName
+                });
+                map.addLayer(TiledMapService); 
+                //存入全局变量
+        		var larerInfo={
+        			//layerUrl:dataUrl,
+        			layerUrl:TiledMapServiceUrl,
+        			layerName:null,
+        			layerId:layerName,
+        			layer:TiledMapService
+        		}
+        		//console.log(larerInfo);
+        		mapApp.tiledLayersUrls.push(larerInfo);
+            }, 
+            /**
+             * 设置图层顺序
+             * @param index 图层顺序号
+		     * @param layerName 图层id,用于唯一标识图层
+             */
+            setLayerOrder: function (layerName,index) {
+                var map = this.map;
+                var layer=mapApp.map.getLayer(layerName);
+                if(layer){
+                	map.reorderLayer(layer,index); 
+                }  
+            }, 
+            /**
+             * @param opacity 图层透明度
+		     * @param layerName 图层id,用于唯一标识图层
+             */
+            setLayerOpacity: function (layerName,opacity) {
+                var map = this.map;
+                var layer=mapApp.map.getLayer(layerName); 
+                if(layer){
+                	layer.setOpacity(opacity);
+                }
+            }, 
+            /**
+             * @param layerUrl 图层url
+		     * @param layerName 图层id,用于唯一标识图层
+		     * @param layerType 图层类型，0，1，2
+		     * @param isVisible true/false是否可见
+             */
+            //setLayerVisible: function (layerUrl,layerName,layerType,isVisible,dataUrl) {
+            setLayerVisible: function (layerUrl,layerName,layerType,isVisible) {
+            	//console.log(layerType);
+                var map = this.map;
+                var layer=mapApp.map.getLayer(layerName); 
+                if(!layer){           
+                	if(layerType=="0"){
+                		//this.showTiledMapService(layerUrl,layerName,dataUrl);
+                		this.showTiledMapService(layerUrl,layerName);
+                	}else if(layerType=="1"){
+                		this.showFeatureLayer(layerUrl,layerName);
+                	}else if(layerType=="2"){
+                		this.showDynamicMapService(layerUrl,layerName);
+                	}
+                	layer=mapApp.map.getLayer(layerName); 
+                }
+                layer.setVisibility(isVisible);               
+                if(layerType=="2"){
+                	//在全局变量中设置其visible
+                	for(var i=0;i<mapApp.dynamicLayersUrls.length;i++){
+                		if(mapApp.dynamicLayersUrls[i].layerId==layerName){
+                			mapApp.dynamicLayersUrls[i].visible=isVisible;
+                			break;
+                		}	   
+                	}
+                }
+                if(layerType=="0"){
+                	//在全局变量中设置其visible
+                	for(var i=0;i<mapApp.tiledLayersUrls.length;i++){
+                		if(mapApp.tiledLayersUrls[i].layerId==layerName){
+                			mapApp.tiledLayersUrls[i].visible=isVisible;
+                			break;
+                		}	   
+                	}
+                }
+                
+            },
+            /**
+             * 显示图例
+             */
+            showLegend: function () {
+                var map = this.map;
+                $("#legendDiv").css("display","block");   
+                require(["esri/dijit/Legend"],function(Legend){
+                	var layerInfos=[];
+                	for(var i=0;i<mapApp.dynamicLayersUrls.length;i++){
+                		var layerInfo={
+                			layer:mapApp.dynamicLayersUrls[i].layer,
+                			title:" "
+                		}
+                		layerInfos.push(layerInfo);
+                	}
+                	for(var i=0;i<mapApp.tiledLayersUrls.length;i++){
+                		var layerInfo={
+                			layer:mapApp.tiledLayersUrls[i].layer,
+                			title:" "
+                		}
+                		layerInfos.push(layerInfo);
+                	}
+                    if(layerInfos.length>0&&!innerPubFun.legendDijit){
+                    	innerPubFun.legendDijit=new Legend({
+                    		map:map,
+                    		layerInfos:layerInfos,
+                    		arrangement:2
+                    	},"legend");
+                    	innerPubFun.legendDijit.startup();
+                    }
+                }) 
+            },
+            /**
+             * 清除图例
+             */
+            removeLegend: function () {
+                $("#legendDiv").css("display","none"); 
+            }
+            
+        });
+        return h;
+    })

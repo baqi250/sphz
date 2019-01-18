@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="PhotosMapper">
+	
+	<!--模型表名 -->
+	<sql id="tableName">
+		points
+	</sql>
+	
+	<!-- 列表 -->
+	<select id="datalistPage" parameterType="page" resultType="pd">
+		select t.id,t.name,t.lon,t.lat,t.area,t.pinyin from points t where 1=1
+	</select>
+	
+</mapper>

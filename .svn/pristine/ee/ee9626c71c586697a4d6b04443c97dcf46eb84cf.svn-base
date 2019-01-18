@@ -1,0 +1,41 @@
+﻿<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%
+	String path = request.getContextPath();
+	String basePath = request.getScheme() + "://"
+			+ request.getServerName() + ":" + request.getServerPort()
+			+ path + "/";
+%>
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+	<base href="<%=basePath%>">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>青岛市规划审批汇总系统</title>
+    <!-- Tell the browser to be responsive to screen width -->
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="stylesheet" href="plugins/xha/plugins/bootstrap/dist/css/bootstrap.css">
+    <link rel="stylesheet" href="plugins/xha/dist/css/pages/xmkj.css">
+</head>
+
+<body class="hold-transition skin-blue sidebar-mini">
+ <!-- Content Wrapper. Contains page content -->
+
+	    <iframe id="mapIframe" src="sphz/project/goMap"></iframe>
+		<iframe id="dataIframe" src="sphz/project/goList"></iframe>
+
+
+	<!-- REQUIRED JS SCRIPTS -->
+
+      <!-- jQuery 3 -->
+    <script src="plugins/xha/plugins/jquery/dist/jquery.min.js "></script>
+     <script type="text/javascript">
+       
+     </script>
+</body>
+
+</html>

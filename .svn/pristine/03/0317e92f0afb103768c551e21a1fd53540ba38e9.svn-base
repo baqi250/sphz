@@ -1,0 +1,153 @@
+/* 自定义box-body */
+
+.box-body .form-label {
+    margin: 0;
+}
+
+.box-header>.box-select-title {
+    display: inline-block;
+}
+
+.box-header>.box-select {
+    display: inline-block;
+    margin-left: 20px;
+}
+
+@media (min-width:896px) {
+    .box-header>.box-select {
+        width: 85%;
+    }
+}
+
+@media (max-width:896px) and (min-width:766px) {
+    .box-header>.box-select {
+        width: 80%;
+    }
+}
+
+@media (max-width:766px) and (min-width:636px) {
+    .box-header>.box-select {
+        width: 85%;
+    }
+}
+
+@media (max-width:636px) and (min-width:402px) {
+    .box-header>.box-select {
+        width: 75%;
+    }
+}
+
+@media (max-width:402px) {
+    .box-header>.box-select {
+        width: 60%;
+    }
+}
+
+
+/* 自定义textarea */
+
+@media (min-width:1200px) {
+    .form-group .input-textarea {
+        resize: none;
+        height: 158px;
+        overflow-y: auto;
+    }
+}
+
+@media (max-width:1200px) {
+    .form-group .input-textarea {
+        resize: none;
+        height: 153px;
+        overflow-y: auto;
+    }
+}
+
+
+/* 提示标签动画 */
+
+#shake-icon {
+    -webkit-transform-origin: bottom center;
+    -moz-transform-origin: bottom center;
+    -o-transform-origin: bottom center;
+    transform-origin: bottom center;
+    animation: shaking 2s .1s linear infinite;
+    -moz-animation: shaking 2s .1s linear infinite;
+    -webkit-animation: shaking 2s .1s linear infinite;
+    -o-animation: shaking 2s .1s linear infinite;
+}
+
+@keyframes shaking {
+    10% {
+        transform: rotate(20deg);
+    }
+    20% {
+        transform: rotate(-15deg);
+    }
+    30% {
+        transform: rotate(5deg);
+    }
+    40% {
+        transform: rotate(-5deg);
+    }
+    50%,
+    100% {
+        transform: rotate(0deg);
+    }
+}
+
+@-webkit-keyframes shaking {
+    10% {
+        transform: rotate(20deg);
+    }
+    20% {
+        transform: rotate(-15deg);
+    }
+    30% {
+        transform: rotate(5deg);
+    }
+    40% {
+        transform: rotate(-5deg);
+    }
+    50%,
+    100% {
+        transform: rotate(0deg);
+    }
+}
+
+@-moz-keyframes shaking {
+    10% {
+        transform: rotate(20deg);
+    }
+    20% {
+        transform: rotate(-15deg);
+    }
+    30% {
+        transform: rotate(5deg);
+    }
+    40% {
+        transform: rotate(-5deg);
+    }
+    50%,
+    100% {
+        transform: rotate(0deg);
+    }
+}
+
+@-o-keyframes shaking {
+    10% {
+        transform: rotate(20deg);
+    }
+    20% {
+        transform: rotate(-15deg);
+    }
+    30% {
+        transform: rotate(5deg);
+    }
+    40% {
+        transform: rotate(-5deg);
+    }
+    50%,
+    100% {
+        transform: rotate(0deg);
+    }
+}

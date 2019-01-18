@@ -1,0 +1,23 @@
+<div id="queryCondition">
+	     <label>查询范围：</label>
+	     <input id="r1" type="radio" value="1" name="forSearch">单图层查询</input>
+	     <input id="r2" type="radio" value="0" name="forSearch" checked="checked">多图层查询</input>
+	     <select id="selectScope" style="display: none">   
+	         <option value="0">可见图层</option> 
+	         <option value="1">所有图层</option>   
+	     </select>
+	 </div>
+<div id="queryContainer"> 
+	 <!-- <div class="line_h"></div> -->
+	 
+	 <div id="queryResult" class="queryContent">
+	    <label>查询结果：</label>
+	    <div id="result_tree" class="ztree"></div>
+	 </div>
+	 <div class="line_h"></div>
+	 
+	 <div id="attributes" class="queryContent">
+	     <label>要素属性：</label>
+	     <div id="attriTable"></div>
+	 </div>
+</div>

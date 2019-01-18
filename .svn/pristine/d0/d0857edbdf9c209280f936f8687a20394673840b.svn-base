@@ -1,0 +1,53 @@
+
+<div class="search-bar">
+	<input id="keyword" type="text" placeholder="请输入..." />
+	<button id="search_tree">搜索</button>
+</div>
+<!-- <div>
+	<form action="../map/convert.do" id="cadForm" method="post" enctype="multipart/form-data">
+			<select class="dropdown">
+				<option value="0"></option>
+				<option value="1">用地规划</option>
+			</select>
+			<input type="file" name="file" />
+			<input type="button" id="uploadcad" value="加载cad">
+	</form>
+</div> -->
+<div class=content>
+	<div class=tree_box style="background-color: #FAFAD2;">
+		<ul id="tree" class="ztree" style="overflow: auto;"></ul>
+	</div>
+</div>
+<div id="rMenu" style="z-index: 10; width:100px;">
+	<ul>
+		<li id="datainfo">数据信息</li>
+	</ul>
+	<ul>
+		<li id="opacity">设置透明度</li>
+	</ul>
+	<ul>
+		<li id="zoom">设置图层居中</li>
+	</ul>
+</div>
+
+<div dojoType="dijit.Dialog" id="myDialog" closeNode="hider" title="设置图层透明度" style="display: none;">
+	<div class="demo">
+	<table>
+	<tr>
+	<td colspan="2" align="center"><label id="num2" style="font-size: 16px; font-weight: bold; width:40px;">1</label></td>
+	</tr>
+	<tr>
+		<td><label>透明度：</label></td>
+		<td style="padding-left: 10px; padding-right: 10px; width:200px;"><div id="slider"></div></td>
+	</tr>
+	<tr>
+		<td colspan="2" align="center" style="padding-top: 20px;">
+			<button id=ok>确定</button>
+		
+			<button id=cancel>取消</button>
+		</td>
+	</tr>
+	</table>
+	
+	</div>
+</div>

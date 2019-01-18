@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+    <title>创建三维场景</title>
+    <link href="../Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+    <link href="./css/pretty.css" rel="stylesheet">
+    <script src="./js/jquery.min.js"></script>
+    <script src="./js/supermap/SuperMap-7.1-11828.js"></script>
+    <script type="text/javascript" src="./js/require.min.js" data-main="js/main"></script>
+    <style>
+        html, body, #cesiumContainer {
+            width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden;background-color: #000000;
+        }
+    </style>
+</head>
+<body>
+<div id="cesiumContainer"></div>
+<div id="toolbar" style="position : absolute;left : 2%; top : 2%;">
+	<input id="query" type="text" value="SMID=1" />
+	<button id="doquery" type="button" class="button black">查询</button>
+</div>
+<div id='loadingbar' class="spinner">
+    <div class="spinner-container container1">
+        <div class="circle1"></div>
+        <div class="circle2"></div>
+        <div class="circle3"></div>
+        <div class="circle4"></div>
+    </div>
+    <div class="spinner-container container2">
+        <div class="circle1"></div>
+        <div class="circle2"></div>
+        <div class="circle3"></div>
+        <div class="circle4"></div>
+    </div>
+    <div class="spinner-container container3">
+        <div class="circle1"></div>
+        <div class="circle2"></div>
+        <div class="circle3"></div>
+        <div class="circle4"></div>
+    </div>
+</div>
+<script>
+	 var viewer;
+	 var scene;
+	 var DoSqlQuery;
+	 var queryServiceUrl="http://localhost:8090/iserver/services/data-test/rest/data";
+    function onload(Cesium) {
+        viewer = new Cesium.Viewer('cesiumContainer');
+        scene=viewer.scene;
+        var promise=scene.open("http://localhost:8090/iserver/services/3D-JiaoTongBiaoXianZong_LuMian1__dwg_ZhengHeMoXing-CreatDatasource2/rest/realspace");
+        
+        promise.then(function(layers){
+        	viewer.zoomTo(layers[0]);
+        	for(var i=0;i<layers.length;i++)
+        	{
+        		layers[i].bReleaseColor=false;
+        		layers[i].cullEnabled=false;
+        		layers[i].refresh();
+        	}
+        	
+        	
+        });
+        
+        
+	    DoSqlQuery=function () 
+	    {
+	            var attributeFilter = document.getElementById("query").value;
+	            //var attributeFilter="SMID=1";
+	
+	
+	            var getFeatureParam, getFeatureBySQLService, getFeatureBySQLParams;
+	            var queryDatasetName="PowerEBM";
+	
+	            getFeatureParam = new SuperMap.REST.FilterParameter({
+	                attributeFilter: attributeFilter
+	            });
+	            getFeatureBySQLParams = new SuperMap.REST.GetFeaturesBySQLParameters({
+	                queryParameter: getFeatureParam,
+	                toIndex:-1,
+	                datasetNames: ["鹏坝超图测试3:" + queryDatasetName]
+	            });
+	            getFeatureBySQLService = new SuperMap.REST.GetFeaturesBySQLService(queryServiceUrl, {
+	                eventListeners: {"processCompleted": onQueryComplete, "processFailed": processFailed}});
+	
+	            getFeatureBySQLService.processAsync(getFeatureBySQLParams);
+	
+	    }
+	    
+	    var onQueryComplete=function(queryEventArgs){
+	    	var resultFeatures = queryEventArgs.originResult.features;
+	    	console.log("test",resultFeatures);
+	    	var geometry=resultFeatures[0].geometry;
+	    	var id=resultFeatures[0].ID;
+	    	var lower=geometry.boundingBox.lower;
+	    	var upper=geometry.boundingBox.upper;
+	    	var h=upper.z-lower.z;
+	    	
+	    	var entity=viewer.entities.add({
+			    polygon : {
+			        hierarchy : new Cesium.PolygonHierarchy(Cesium.Cartesian3.fromDegreesArray([lower.x, lower.y,
+			                                                                                    upper.x, lower.y,
+			                                                                                    upper.x, upper.y,
+			                                                                                    lower.x, upper.y])),
+			        height : lower.z,
+			        extrudedHeight :upper.z,
+			        outline : false,
+			        material : Cesium.Color.fromRandom({alpha : 0.01})
+			    }
+			});
+			viewer.zoomTo(entity);
+			var layer=scene.layers.find("PowerEBM@鹏坝超图测试3");
+			layer.removeAllObjsColor();
+			
+			var color = new Cesium.Color(1.0, 0.0, 0.0);
+			var  ids = [id];
+			//layer.setObjsColor(ids, color);
+			
+			setTimeout(function(){
+				viewer.entities.removeAll();
+			},3000);   
+	    	
+	    	
+	    }
+	    var processFailed=function(e){
+	    	
+	    	alert(e.error.errorMsg);    	
+	    }
+	    document.getElementById("doquery").onclick = function() {
+				DoSqlQuery();
+	        };
+	           
+	        $('#loadingbar').remove();
+    }
+</script>
+</body>
+</html>

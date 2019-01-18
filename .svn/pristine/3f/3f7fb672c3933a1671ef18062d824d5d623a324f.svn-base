@@ -1,0 +1,489 @@
+(function($) {
+    'use strict'
+
+    // documentData类型type说明：（1）TJXZ 条件选址；（2）YDXK 用地许可；（3）JSXK 建设许可；（4）JGXK 竣工许可。
+    $.fn.tablelist = function(options) {
+        var defaultOptions = { // 默认设置
+            title: "青岛市应急救援战勤保障中心项目",
+            BaojianData: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],
+            FawenData: ["0", "1", "2", "3", "4", "5", "6"],
+            JingbanData: ["0", "1", "2"],
+            GuidangData: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
+            ZhibiaoType: "",
+            ZhibiaoData: [""],
+            noresult: "-"
+        };
+        var $this = $(this);
+        var option = $.extend(defaultOptions, options);
+
+        // 标题
+        setTableTitle($this, option.title);
+
+        // 报建信息
+        setBaojian($this, option.BaojianData);
+
+        // 发文信息
+        setFawen($this, option.FawenData);
+
+        // 经办信息
+        setJingban($this, option.JingbanData);
+
+        // 指标信息
+        if (option.ZhibiaoType !== "" && option.ZhibiaoData.length > 0) {
+            setZhibiao($this, option.ZhibiaoType, option.ZhibiaoData);
+        }
+
+        // 归档信息
+        setGuidang($this, option.GuidangData);
+
+        $('.table-title').on('click', function() {
+            if ($(this).hasClass('open')) {
+                $(this).removeClass('open').addClass('closed');
+                $(this).children('i').removeClass('fa-circle').addClass('fa-circle-o');
+                $(this).parent('section').children('table').hide('normal');
+            } else {
+                $(this).removeClass('closed').addClass('open');
+                $(this).children('i').removeClass('fa-circle-o').addClass('fa-circle');
+                $(this).parent('section').children('table').show();
+            }
+        });
+
+        return this;
+    };
+
+    function setTableTitle($this, title) {
+        // 标题
+        var sec = $('<section />', {
+                'class': 'content-header'
+            })
+            .html('<h1><i class="fa fa-book"></i> ' + title + '</h1>')
+            .appendTo($this);
+        return $this;
+    }
+
+    function setBaojian($this, BaojianData) {
+        // 报建信息
+        var sec = $('<section />', {
+                'class': 'content-table',
+                'id': 'BJXX'
+            })
+            .html('<h3 class="table-title text-blue open"><i class="fa fa-circle"></i>报建信息</h3>')
+            .appendTo($this);
+        var table = $('<table />', {
+                'class': 'table table-bordered'
+            })
+            .html('<col style="width: 80px;" /><col style="width: 40px;" /><col><col style="width: 80px;" /><col style="width: 40px;" /><col>')
+            .appendTo(sec);
+        var tbody = $('<tbody />')
+            .appendTo(table);
+        var tr1 = $('<tr />')
+            .html('<th>项目编号</th><td colspan="2">' + BaojianData[0] + '</td>' +
+                '<th>项目属地</th><td colspan="2">' + BaojianData[1] + '</td>')
+            .appendTo(tbody);
+        var tr2 = $('<tr />')
+            .html('<th>项目名称</th><td colspan="5">' + BaojianData[2] + '</td>')
+            .appendTo(tbody);
+        var tr3 = $('<tr />')
+            .html('<th>项目位置</th><td colspan="5">' + BaojianData[3] + '</td>')
+            .appendTo(tbody);
+        var tr4 = $('<tr />')
+            .html('<th>建设单位</th><td colspan="2">' + BaojianData[4] + '</td>' +
+                '<th colspan="2">组织机构代码证</th><td>' + BaojianData[5] + '</td>')
+            .appendTo(tbody);
+        var tr5 = $('<tr />')
+            .html('<th>建设规模</th><td colspan="2">' + BaojianData[6] + '</td>' +
+                '<th>总投资&emsp;</th><td colspan="2">' + BaojianData[7] + '</td>')
+            .appendTo(tbody);
+        var tr6 = $('<tr />')
+            .html('<th>设计单位</th><td colspan="5">' + BaojianData[8] + '</td>')
+            .appendTo(tbody);
+        var tr7 = $('<tr />')
+            .html('<th>报建人&emsp;</th><td colspan="2">' + BaojianData[9] + '</td>' +
+                '<th>联系方式</th><td colspan="2">' + BaojianData[10] + '</td>')
+            .appendTo(tbody);
+        return $this;
+    }
+
+    function setFawen($this, FawenData) {
+        // 发文信息
+        var sec = $('<section />', {
+                'class': 'content-table',
+                'id': 'FWXX'
+            })
+            .html('<h3 class="table-title text-yellow open"><i class="fa fa-circle"></i>发文信息</h3>')
+            .appendTo($this);
+        var table = $('<table />', {
+                'class': 'table table-bordered'
+            })
+            .html('<col style="width: 80px;" /><col><col style="width: 80px;" /><col style="width: 25px;" /><col><col style="width: 80px;" /><col>')
+            .appendTo(sec);
+        var tbody = $('<tbody />')
+            .appendTo(table);
+        var tr1 = $('<tr />')
+            .html('<th>工程类别</th><td>' + FawenData[0] + '</td>' +
+                '<th>申办类型</th><td colspan="2">' + FawenData[1] + '</td>' +
+                '<th>审批阶段</th><td>' + FawenData[2] + '</td>')
+            .appendTo(tbody);
+        var tr2 = $('<tr />')
+            .html('<th>发文类型</th><td>' + FawenData[3] + '</td>' +
+                '<th>发文文号</th><td colspan="4">' + FawenData[4] + '</td>')
+            .appendTo(tbody);
+        var tr3 = $('<tr />')
+            .html('<th>发文时间</th><td>' + FawenData[5] + '</td>' +
+                '<th colspan="2">证书钢印号&emsp;</th><td colspan="3">' + FawenData[6] + '</td>')
+            .appendTo(tbody);
+
+        return $this;
+    }
+
+    function setJingban($this, JingbanData) {
+        // 经办信息
+        var sec = $('<section />', {
+                'class': 'content-table',
+                'id': 'JBXX'
+            })
+            .html('<h3 class="table-title text-green open"><i class="fa fa-circle"></i>经办信息</h3>')
+            .appendTo($this);
+        var table = $('<table />', {
+                'class': 'table table-bordered'
+            })
+            .html('<col style="width: 80px;" /><col><col style="width: 80px;" /><col>')
+            .appendTo(sec);
+        var tbody = $('<tbody />')
+            .appendTo(table);
+        var tr1 = $('<tr />')
+            .html('<th>承办部门</th><td colspan="3">' + JingbanData[0] + '</td>')
+            .appendTo(tbody);
+        var tr2 = $('<tr />')
+            .html('<th>经办人&emsp;</th><td>' + JingbanData[1] + '</td>' +
+                '<th>签批人&emsp;</th><td>' + JingbanData[2] + '</td>')
+            .appendTo(tbody);
+
+        return $this;
+    }
+
+    function setGuidang($this, GuidangData) {
+        // 归档信息
+        var sec = $('<section />', {
+                'class': 'content-table',
+                'id': 'GDXX'
+            })
+            .html('<h3 class="table-title text-info open"><i class="fa fa-circle"></i>归档信息</h3>')
+            .appendTo($this);
+        var table = $('<table />', {
+                'class': 'table table-bordered'
+            })
+            .html('<col style="width: 80px; " /><col><col style="width: 80px; " /><col style="width: 25px; " /><col>')
+            .appendTo(sec);
+        var tbody = $('<tbody />')
+            .appendTo(table);
+        var tr1 = $('<tr />')
+            .html('<th>档案编号</th><td>' + GuidangData[0] + '</td>' +
+                '<th colspan="2">数字档案号&emsp;</th><td>' + GuidangData[1] + '</td>')
+            .appendTo(tbody);
+        var tr2 = $('<tr />')
+            .html('<th>档案盒号</th><td>' + GuidangData[2] + '</td>' +
+                '<th>档案来源</th><td colspan="2">' + GuidangData[3] + '</td>')
+            .appendTo(tbody);
+        var tr3 = $('<tr />')
+            .html('<th>录入人员</th><td>' + GuidangData[4] + '</td>' +
+                '<th>录入日期</th><td colspan="2">' + GuidangData[5] + '</td>')
+            .appendTo(tbody);
+        var tr4 = $('<tr />')
+            .html('<th>审核人员</th><td>' + GuidangData[6] + '</td>' +
+                '<th>审核日期</th><td colspan="2">' + GuidangData[7] + '</td>')
+            .appendTo(tbody);
+        var tr5 = $('<tr />')
+            .html('<th>审核状态</th><td colspan="4">' + GuidangData[8] + '</td>')
+            .appendTo(tbody);
+        var tr6 = $('<tr />', {
+                'height': '60px'
+            })
+            .html('<th>备注&emsp;&emsp;</th><td colspan="4">' + GuidangData[9] + '</td>')
+            .appendTo(tbody);
+
+        return $this;
+    }
+
+    function setZhibiao($this, ZhibiaoType, ZhibiaoData) {
+        // 指标信息
+        var sec = $('<section />', {
+                'class': 'content-table'
+            })
+            .html('<h3 class="table-title text-red open"><i class="fa fa-circle"></i>指标信息</h3>')
+            .appendTo($this);
+        var table = $('<table />', {
+                'class': 'table table-bordered'
+            })
+            .html('<col style="width: 120px;" /><col style="width: 40px;" /><col><col style="width: 120px;" /><col style="width: 40px;" /><col>')
+            .appendTo(sec);
+        var tbody = $('<tbody />')
+            .appendTo(table);
+        switch (ZhibiaoType) {
+            case "ZBXX-XZTJ":
+                {
+                    // 指标信息-选址条件
+                    //ZhibiaoData = ["0", "1", "2", "3", "4", "5", "6", "7", "8"];
+                    sec.attr('id', 'ZBXX-XZTJ');
+                    var tr1 = $('<tr />')
+                        .html('<th>用地性质</th><td colspan="5">' + ZhibiaoData[0] + '</td>')
+                        .appendTo(tbody);
+                    var tr2 = $('<tr />')
+                        .html('<th colspan="2">是否为混合用地</th><td>' + ZhibiaoData[1] + '</td>' +
+                            '<th colspan="2">混合用地比例&emsp;</th><td>' + ZhibiaoData[2] + '</td>')
+                        .appendTo(tbody);
+                    var tr3 = $('<tr />')
+                        .html('<th>用地面积</th><td colspan="2">' + ZhibiaoData[3] + '</td>' +
+                            '<th>容积率&emsp;</th><td colspan="2">' + ZhibiaoData[4] + '</td>')
+                        .appendTo(tbody);
+                    var tr4 = $('<tr />')
+                        .html('<th>建筑密度</th><td colspan="2">' + ZhibiaoData[5] + '</td>' +
+                            '<th>绿地率&emsp;</th><td colspan="2">' + ZhibiaoData[6] + '</td>')
+                        .appendTo(tbody);
+                    var tr5 = $('<tr />')
+                        .html('<th>停车位&emsp;</th><td colspan="2">' + ZhibiaoData[7] + '</td>' +
+                            '<th>控制高度</th><td colspan="2">' + ZhibiaoData[8] + '</td>')
+                        .appendTo(tbody);
+                    break;
+                }
+            case "ZBXX-YDXK":
+                {
+                    // 指标信息-用地许可
+                    //ZhibiaoData = ["0", "1", "2", "3", "4", "5"];
+                    sec.attr('id', 'ZBXX-YDXK');
+                    var tr1 = $('<tr />')
+                        .html('<th>用地性质</th><td colspan="5">' + ZhibiaoData[0] + '</td>')
+                        .appendTo(tbody);
+                    var tr2 = $('<tr />')
+                        .html('<th colspan="2">是否为混合用地</th><td>' + ZhibiaoData[1] + '</td>' +
+                            '<th colspan="2">混合用地比例&emsp;</th><td>' + ZhibiaoData[2] + '</td>')
+                        .appendTo(tbody);
+                    var tr3 = $('<tr />')
+	                    .html('<th colspan="2">用地面积（㎡）&emsp;</th><td>' + ZhibiaoData[3] + '</td>' +
+	                        '<th colspan="2">基础设施分类&emsp;</th><td>' + ZhibiaoData[4] + '</td>')
+	                    .appendTo(tbody);
+                    var tr4 = $('<tr />')
+                        .html('<th colspan="2">土地资源类型&emsp;</th><td>' + ZhibiaoData[5] + '</td>' +
+                            '<th colspan="2">土地使用类型&emsp;</th><td>' + ZhibiaoData[6] + '</td>')
+                        .appendTo(tbody);
+                    var tr5 = $('<tr />', {
+                            'height': '60px'
+                        })
+                        .html('<th colspan="2">海绵城市要求&emsp;</th><td colspan="4">' + ZhibiaoData[7] + '</td>')
+                        .appendTo(tbody);
+                    break;
+                }
+            case "ZBXX-JSXK-JZGC":
+                {
+                    // 指标信息-建设许可-建筑工程
+                   // ZhibiaoData = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"];
+                    sec.attr('id', 'ZBXX-JSXK-JZGC');
+                    var tr1 = $('<tr />')
+                        .html('<th colspan="2">用地性质</th><td colspan="4">' + ZhibiaoData[0] + '</td>')
+                        .appendTo(tbody);
+                    var tr2 = $('<tr />')
+                        .html('<th colspan="2">是否为混合用地</th><td>' + ZhibiaoData[1] + '</td>' +
+                            '<th colspan="2">混合用地比例&emsp;</th><td>' + ZhibiaoData[2] + '</td>')
+                        .appendTo(tbody);
+                    var tr3 = $('<tr />')
+                        .html('<th colspan="2">用地面积（㎡）</th><td colspan="1">' + ZhibiaoData[3] + '</td>' +
+                            '<th colspan="2">容积率&emsp;</th><td colspan="1">' + ZhibiaoData[4] + '</td>')
+                        .appendTo(tbody);
+                    var tr4 = $('<tr />')
+                        .html('<th colspan="2">建筑密度</th><td colspan="1">' + ZhibiaoData[5] + '</td>' +
+                            '<th colspan="2">绿地率&emsp;</th><td colspan="1">' + ZhibiaoData[6] + '</td>')
+                        .appendTo(tbody);
+                    var tr5 = $('<tr />')
+                        .html('<th colspan="2" rowspan="2">总建筑面积（㎡）&emsp;&emsp;</th><td rowspan="2">' + ZhibiaoData[7] + '</td>' +
+                            '<th colspan="2">地上建筑面积（㎡）&emsp;</th><td>' + ZhibiaoData[8] + '</td>')
+                        .appendTo(tbody);
+                    var tr6 = $('<tr />')
+                        .html('<th colspan="2">地下建筑面积（㎡）&emsp;</th><td>' + ZhibiaoData[9] + '</td>')
+                        .appendTo(tbody);
+                    var tr7 = $('<tr />')
+                        .html('<th colspan="2" rowspan="2">停车位&emsp;</th><td rowspan="2">' + ZhibiaoData[10] + '</td>' +
+                            '<th colspan="2">地上车位数&emsp;&emsp;</th><td>' + ZhibiaoData[11] + '</td>')
+                        .appendTo(tbody);
+                    var tr8 = $('<tr />')
+                        .html('<th colspan="2">地下车位数&emsp;&emsp;</th><td>' + ZhibiaoData[12] + '</td>')
+                        .appendTo(tbody);
+                    var tr9 = $('<tr />')
+                        .html('<th colspan="2">住宅建筑面积（㎡）&emsp;</th><td>' + ZhibiaoData[13] + '</td>' +
+                            '<th colspan="2">户数&emsp;&emsp;</th><td colspan="1">' + ZhibiaoData[14] + '</td>')
+                        .appendTo(tbody);
+                    var tr10 = $('<tr />')
+                        .html('<th colspan="2">办公建筑面积（㎡）&emsp;</th><td colspan="4">' + ZhibiaoData[15] + '</td>')
+                        .appendTo(tbody);
+                    var tr11 = $('<tr />')
+                        .html('<th colspan="2">配套类型</th><td colspan="1">' + ZhibiaoData[16] + '</td>' +
+                            '<th colspan="2">配套建筑面积（㎡）&emsp;</th><td>' + ZhibiaoData[17] + '</td>')
+                        .appendTo(tbody);
+                    var tr12 = $('<tr />')
+                        .html('<th colspan="2">建设项目内含道路占面积（㎡）</th><td colspan="1">' + ZhibiaoData[18] + '</td>'+
+                        		'<th colspan="2">建筑物使用性质（多个）</th><td colspan="1">' + ZhibiaoData[19] + '</td>')
+                        .appendTo(tbody);
+                   /* var tr13 = $('<tr />')
+                        .html('<th colspan="2">建筑物使用性质（多个）</th><td colspan="4">' + ZhibiaoData[19] + '</td>')
+                        .appendTo(tbody);*/
+                    var tr14 = $('<tr />', {
+                            'height': '60px'
+                        })
+                        .html('<th colspan="2">海绵城市要求&emsp;</th><td colspan="4">' + ZhibiaoData[20] + '</td>')
+                        .appendTo(tbody);
+                    break;
+                }
+            case "ZBXX-JSXK-SZDQ":
+                {
+                    // 指标信息-建设许可-市政道桥
+                    ZhibiaoData = ["0", "1", "2", "3", "4", "5", "6", "7", "8"];
+                    sec.attr('id', 'ZBXX-JSXK-SZDQ');
+                    var tr1 = $('<tr />')
+                        .html('<th>用地性质</th><td colspan="2">' + ZhibiaoData[0] + '</td>' +
+                            '<th>用地面积（㎡）</th><td colspan="2">' + ZhibiaoData[1] + '</td>')
+                        .appendTo(tbody);
+                    var tr2 = $('<tr />')
+                        .html('<th colspan="3">道路总长度（中线长度）（米）</th><td colspan="3">' + ZhibiaoData[2] + '</td>')
+                        .appendTo(tbody);
+                    var tr3 = $('<tr />')
+                        .html('<th>道路宽度</th><td colspan="2">' + ZhibiaoData[3] + '</td>' +
+                            '<th>道路级别</th><td colspan="2">' + ZhibiaoData[4] + '</td>')
+                        .appendTo(tbody);
+                    var tr4 = $('<tr />')
+                        .html('<th>断面形式</th><td colspan="2">' + ZhibiaoData[5] + '</td>' +
+                            '<th>设计标准</th><td colspan="2">' + ZhibiaoData[6] + '</td>')
+                        .appendTo(tbody);
+                    var tr5 = $('<tr />')
+                        .html('<th colspan="2">折算建筑面积（㎡）&emsp;</th><td colspan="4">' + ZhibiaoData[7] + '</td>')
+                        .appendTo(tbody);
+                    var tr6 = $('<tr />', {
+                            'height': '60px'
+                        })
+                        .html('<th colspan="2">海绵城市要求&emsp;</th><td colspan="4">' + ZhibiaoData[8] + '</td>')
+                        .appendTo(tbody);
+                    break;
+                }
+            case "ZBXX-JSXK-SZGX":
+                {
+                    // 指标信息-建设许可-市政管线
+                    //ZhibiaoData = ["0", "1", "2", "3", "4", "5", "6", "7", "8"];
+                    sec.attr('id', 'ZBXX-JSXK-SZGX');
+                    var tr1 = $('<tr />')
+                        .html('<th>用地性质</th><td colspan="2">' + ZhibiaoData[0] + '</td>' +
+                            '<th>用地面积（㎡）</th><td colspan="2">' + ZhibiaoData[1] + '</td>')
+                        .appendTo(tbody);
+                    var tr2 = $('<tr />')
+                        .html('<th>管线类型</th><td colspan="2">' + ZhibiaoData[2] + '</td>' +
+                            '<th colspan="2">管线总长度（千米）&emsp;&emsp;</th><td>' + ZhibiaoData[3] + '</td>')
+                        .appendTo(tbody);
+                    var tr3 = $('<tr />')
+                        .html('<th colspan="2">折算建筑面积（㎡）&emsp;</th><td colspan="4">' + ZhibiaoData[4] + '</td>')
+                        .appendTo(tbody);
+                    var tr4 = $('<tr />', {
+                            'height': '60px'
+                        })
+                        .html('<th colspan="2">海绵城市要求&emsp;</th><td colspan="4">' + ZhibiaoData[5] + '</td>')
+                        .appendTo(tbody);
+                    break;
+                }
+            case "ZBXX-JGXK-JZGC":
+                {
+                    // 指标信息-竣工许可-建筑工程
+                    //ZhibiaoData = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"];
+                    sec.attr('id', 'ZBXX-JGXK-JZGC');
+                    var tr1 = $('<tr />')
+                        .html('<th>工程地址</th><td colspan="5">' + ZhibiaoData[0] + '</td>')
+                        .appendTo(tbody);
+                    var tr2 = $('<tr />')
+                        .html('<th>勘查单位</th><td colspan="5">' + ZhibiaoData[1] + '</td>')
+                        .appendTo(tbody);
+                    var tr3 = $('<tr />')
+                        .html('<th>设计单位</th><td colspan="5">' + ZhibiaoData[2] + '</td>')
+                        .appendTo(tbody);
+                    var tr4 = $('<tr />')
+                        .html('<th>用地面积（㎡）</th><td colspan="5">' + ZhibiaoData[3] + '</td>')
+                        .appendTo(tbody);
+                    var tr5 = $('<tr />')
+                        .html('<th colspan="2" rowspan="2">总建筑面积（㎡）&emsp;&emsp;</th><td rowspan="2">' + ZhibiaoData[4] + '</td>' +
+                            '<th colspan="2">地上建筑面积（㎡）&emsp;</th><td>' + ZhibiaoData[5] + '</td>')
+                        .appendTo(tbody);
+                    var tr6 = $('<tr />')
+                        .html('<th colspan="2">地下建筑面积（㎡）&emsp;</th><td>' + ZhibiaoData[6] + '</td>')
+                        .appendTo(tbody);
+                    var tr7 = $('<tr />')
+                        .html('<th colspan="2">建筑占地面积（㎡）&emsp;</th><td>' + ZhibiaoData[7] + '</td>' +
+                            '<th>建筑高度（米）</th><td colspan="2">' + ZhibiaoData[8] + '</td>')
+                        .appendTo(tbody);
+                    var tr8 = $('<tr />')
+                        .html('<th>层数&emsp;&emsp;</th><td colspan="2">' + ZhibiaoData[9] + '</td>' +
+                            '<th>结构体系</th><td colspan="2">' + ZhibiaoData[10] + '</td>')
+                        .appendTo(tbody);
+                    var tr9 = $('<tr />')
+                        .html('<th colspan="2">抗震设防烈度&emsp;</th><td>' + ZhibiaoData[11] + '</td>' +
+                            '<th colspan="2">抗震设防级别&emsp;</th><td>' + ZhibiaoData[12] + '</td>')
+                        .appendTo(tbody);
+                    var tr10 = $('<tr />')
+                        .html('<th>厂房跨度</th><td colspan="2">' + ZhibiaoData[13] + '</td>' +
+                            '<th>基础形式</th><td colspan="2">' + ZhibiaoData[14] + '</td>')
+                        .appendTo(tbody);
+                    var tr11 = $('<tr />')
+                        .html('<th>耐火等级</th><td colspan="2">' + ZhibiaoData[15] + '</td>' +
+                            '<th>人防等级</th><td colspan="2">' + ZhibiaoData[16] + '</td>')
+                        .appendTo(tbody);
+                    break;
+                }
+            case "ZBXX-JGXK-SZDQ":
+                {
+                    // 指标信息-竣工许可-市政道桥
+                    //ZhibiaoData = ["0", "1", "2", "3", "4", "5", "6", "7"];
+                    sec.attr('id', 'ZBXX-JGXK-SZDQ');
+                    var tr1 = $('<tr />')
+                        .html('<th>工程地址</th><td colspan="5">' + ZhibiaoData[0] + '</td>')
+                        .appendTo(tbody);
+                    var tr2 = $('<tr />')
+                        .html('<th>勘查单位</th><td colspan="5">' + ZhibiaoData[1] + '</td>')
+                        .appendTo(tbody);
+                    var tr3 = $('<tr />')
+                        .html('<th>设计单位</th><td colspan="5">' + ZhibiaoData[2] + '</td>')
+                        .appendTo(tbody);
+                    var tr4 = $('<tr />')
+                        .html('<th>用地面积（㎡）</th><td colspan="5">' + ZhibiaoData[3] + '</td>')
+                        .appendTo(tbody);
+                    var tr5 = $('<tr />')
+                        .html('<th colspan="2">道路总长度（米）&emsp;&emsp;</th><td colspan="4">' + ZhibiaoData[4] + '</td>')
+                        .appendTo(tbody);
+                    var tr6 = $('<tr />')
+                        .html('<th>道路宽度</th><td colspan="2">' + ZhibiaoData[5] + '</td>' +
+                            '<th>断面形式</th><td colspan="2">' + ZhibiaoData[6] + '</td>')
+                        .appendTo(tbody);
+                    var tr7 = $('<tr />')
+                        .html('<th colspan="2">折算建筑面积（㎡）&emsp;</th><td colspan="4">' + ZhibiaoData[7] + '</td>')
+                        .appendTo(tbody);
+                    break;
+                }
+            case "ZBXX-JGXK-SZGX":
+                {
+                    // 指标信息-竣工许可-市政管线
+                    //ZhibiaoData = ["0", "1", "2", "3", "4", "5", "6", "7"];
+                    sec.attr('id', 'ZBXX-JGXK-SZDQ');
+                    var tr1 = $('<tr />')
+                        .html('<th>工程地址</th><td colspan="5">' + ZhibiaoData[0] + '</td>')
+                        .appendTo(tbody);
+                    var tr2 = $('<tr />')
+                        .html('<th>勘查单位</th><td colspan="5">' + ZhibiaoData[1] + '</td>')
+                        .appendTo(tbody);
+                    var tr3 = $('<tr />')
+                        .html('<th>设计单位</th><td colspan="5">' + ZhibiaoData[2] + '</td>')
+                        .appendTo(tbody);
+                    var tr4 = $('<tr />')
+                        .html('<th>用地面积（㎡）</th><td colspan="2">' + ZhibiaoData[3] + '</td>' +
+                            '<th>管线类型</th><td colspan="2">' + ZhibiaoData[4] + '</td>')
+                        .appendTo(tbody);
+                    var tr5 = $('<tr />')
+                        .html('<th colspan="2">管线总长度（千米）&emsp;&emsp;</th><td colspan="4">' + ZhibiaoData[5] + '</td>')
+                        .appendTo(tbody);
+                    break;
+                }
+        }
+        return $this;
+    }
+})(jQuery);

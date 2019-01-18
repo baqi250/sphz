@@ -1,0 +1,106 @@
+/* 缁涙盯锟斤拷 */
+
+@media (max-width: 770px) {
+    .box-select-item {
+        margin: 10px 0;
+    }
+}
+
+.box-mutiselect {
+    display: inline-block;
+}
+
+@media (min-width: 1380px) {
+    .box-mutiselect {
+        width: 74%;
+    }
+}
+
+@media (max-width: 1380px) {
+    .box-mutiselect {
+        width: 90%;
+    }
+}
+
+
+/* 閹兼粎鍌ㄥ锟� */
+
+.box-search {
+    width: 100%;
+}
+
+@media (min-width: 1040px) {
+    .box-search {
+        width: 100%;
+        padding: 10px 120px 0 10px;
+    }
+}
+
+@media (max-width: 1040px) and (min-width: 770px) {
+    .box-search {
+        width: 100%;
+        padding: 10px 60px 0 10px;
+    }
+}
+
+@media (max-width: 770px) {
+    .box-search {
+        width: 100%;
+        padding: 10px 10px 0 10px;
+    }
+}
+
+
+/* 鐞涖劍鐗搁幐澶愭尦 */
+
+.table-badge {
+    margin: 0 6px;
+    cursor: pointer;
+}
+
+.bg-disabled {
+    background-color: #d2d6de !important;
+}
+
+.table-check {
+    margin-right: 6px;
+}
+
+
+/* 鐎涙劘銆冮弽锟� */
+
+.table-child {
+    margin-left: 20px;
+    width: 98%;
+}
+
+.table-child-middle {
+    border-right: 3px double #d2d6de;
+}
+.statusselected{
+	background-color: #0bf6e5;
+}
+body{
+	position:absolute;
+	top:0px;
+	left:0px;
+	right:0px;
+	bottom:0px;
+	padding:0;
+	margin:0;
+}
+#mapIframe{
+	float:left;
+	height:100%;
+	width:40%;
+}
+#dataIframe{
+	float:left;
+	height:100%;
+	width:60%;
+	/* background-color: red; */
+}
+#mapDiv{
+	height: 100%; 
+	z-index: 1;
+}

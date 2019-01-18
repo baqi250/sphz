@@ -1,0 +1,246 @@
+(function($) {
+    $.fn.attachmentlist = function(options) {
+        var defaultOptions = { // 默认设置
+            title: "附件列表",
+            url: "",
+            ajaxtype: "POST",
+            data: [{
+                id: 0,
+                name: "类别1",
+                sub: [{
+                        id: 0,
+                        name: "附件1-1",
+                        url: "http://www.baidu.com"
+                    },
+                    {
+                        id: 1,
+                        name: "附件1-2",
+                        url: "#"
+                    },
+                    {
+                        id: 2,
+                        name: "附件1-3",
+                        url: "#"
+                    },
+                    {
+                        id: 3,
+                        name: "附件1-4",
+                        url: "#"
+                    }
+                ]
+            }, {
+                id: 1,
+                name: "类别2",
+                sub: [{
+                        id: 0,
+                        name: "附件2-1",
+                        url: "#"
+                    },
+                    {
+                        id: 1,
+                        name: "附件2-2",
+                        url: "#"
+                    },
+                    {
+                        id: 2,
+                        name: "附件2-3",
+                        url: "#"
+                    },
+                    {
+                        id: 3,
+                        name: "附件2-4",
+                        url: "#"
+                    }
+                ]
+            }, {
+                id: 2,
+                name: "类别3",
+                sub: [{
+                        id: 0,
+                        name: "附件3-1",
+                        url: "#"
+                    },
+                    {
+                        id: 1,
+                        name: "附件3-2",
+                        url: "#"
+                    },
+                    {
+                        id: 2,
+                        name: "附件3-3",
+                        url: "#"
+                    },
+                    {
+                        id: 3,
+                        name: "附件3-4",
+                        url: "#"
+                    }
+                ]
+            }],
+            error: "网络错误",
+            noresult: "无附件信息",
+            clickViewfunction: function(urls) {
+                alert("请定义查看函数：返回值为当前选中的url数组");
+                console.log(urls);
+            }
+        };
+        var $cover;
+        var $this = $(this);
+        var option = $.extend(defaultOptions, options);
+
+//        $this.on("click", function() {
+//        	alert($(this).attr("id"));
+//            
+//
+//        });
+     // 定义attachbox
+        $cover = setAttachbox(option);
+
+        $("#attachbox-close").on("click", function() {
+            $cover.remove();
+        });
+        return this;
+    };
+
+    function setAttachbox(option) {
+        // 定义attachbox
+        var $cover = $("<div></div>");
+        $cover.addClass("attach-box");
+        var $body = $("<div></div>");
+        $body.addClass("attach-box-body");
+        $body.appendTo($cover);
+
+        // 设置title
+        setAttachboxTitle($body, option.title);
+
+        // 设置内容
+        setAttachTree($body, option.data, option.noresult);
+
+        // 设置toolbar
+        //setAttachToolbar($body, option.clickViewfunction);
+
+        $cover.appendTo($(document.body));
+
+        // 设置checkbox点击函数
+        $('.attachbox-check-item').click(function(e) {
+            // 阻止再次触发input点击事件
+            if ($(e.target).is("input")) {
+                return;
+            }
+            var allNum = $('.attachbox-check-item').children('input[type="checkbox"]').length;
+            var checkedNum = $('.attachbox-check-item').children('input[type="checkbox"]:checked').length;
+            var num = allNum - checkedNum;
+            if (num == 0) {
+                if ($('#chooseall').prop('checked')) {
+                    $('#chooseall').prop('checked', false);
+                }
+            } else if (num == 1) {
+                if (!$(this).children('input[type="checkbox"]').prop('checked')) {
+                    $('#chooseall').prop('checked', true);
+                }
+            }
+        });
+
+        return $cover;
+    }
+
+    function setAttachboxTitle($body, title) {
+        // 设定标题栏
+        var parentDiv = $("<div></div>");
+        parentDiv.addClass("attach-box-header");
+        var html = "<h3 class='attach-box-title text-blue'>" + title + "</h3>";
+        parentDiv.html(html);
+
+        var childDiv = $("<div></div>");
+        childDiv.addClass("attach-box-close");
+        childDiv.html("<button type='button' class='btn btn-box-tool' id='attachbox-close'><i class='fa fa-close'></i></button>");
+
+        childDiv.appendTo(parentDiv);
+        parentDiv.appendTo($body);
+    }
+
+    function setAttachTree($body, data, noresult) {
+        // 设置tree
+        $result = $("<div></div>");
+        $result.addClass("attach-box-result");
+        $result.attr("id", "attachbox-result");
+        $result.appendTo($body);
+
+        // var $panel = $("<div class='panel-group' id='attachbox-tree'></div>");
+        var $panel = $("<div class='panel-group'></div>");
+        data.forEach(function(element, index) {
+        	var id = "attachbox-tree-collapse" + index;
+            var $panelItem = $("<div class='panel attachbox-panel'></div>");
+            var html = "<a data-toggle='collapse' data-parent='#attachbox-tree' href='#" + id + "'><div class='panel-heading'><h4 class='panel-title'>" + element.name + "</h4></div></a>";
+            html += "<div id='" + id + "' class='panel-collapse collapse'><div class='panel-body'><ul class='attachbox-table'>";
+            
+            if (element.sub == "" || element.sub === undefined || element.sub == null || element.sub.length == 0) {
+                html += "<li>" + noresult + "</li>";
+            } else {
+                element.sub.forEach(function(item, idx) {
+                        var iid = "attachbox-check-" + index + "-" + idx;
+                        html += "<li><label for='" + iid + "' class='attachbox-check-item'><input type='checkbox' class='flat' id='" + iid + "'><i class='fa fa-check-square' id=" + index + "></i>" + item.name;
+                        //html += "<a href='" + item.url + "' class='attachbox-view'><i class='fa fa-paperclip'></i> 查看</a></label></li>";
+                        
+                        html += "<a href='sphz/files/getFileByPath?url="+item.url+"' class='attachbox-view' target='_blank'><i class='fa fa-paperclip'></i> 查看</a></label></li>";
+                });
+            }
+                html += "</ul></div></div>";
+
+                $panelItem.html(html);
+                $panelItem.appendTo($panel);
+        });
+
+        $panel.appendTo($result);
+    }
+
+    function setAttachToolbar($body, clickViewfunction) {
+        // 设置toolbar
+        $toolbar = $("<div></div>");
+        $toolbar.addClass("attach-box-toolbar");
+        $toolbar.attr("id", "attachbox-toolbar");
+        $toolbar.appendTo($body);
+
+        // 设置全选
+        $chooseall = $('<label />', {
+                'id': 'attachbox-chooseall',
+                'for': 'chooseall'
+            })
+            .html('<input type="checkbox" class="flat" id="chooseall"><i class="fa fa-check-square"></i>全选')
+            .on('click', function(e) {
+                // 阻止再次触发input点击事件
+                if ($(e.target).is("input")) {
+                    return;
+                }
+                if ($('#chooseall').prop('checked')) {
+                    $('.attachbox-check-item').children('input[type="checkbox"]').prop('checked', false);
+                } else {
+                    $('.attachbox-check-item').children('input[type="checkbox"]').prop('checked', true);
+                }
+            });
+
+        $chooseall.appendTo($toolbar);
+
+        // 设置下载
+        $view = $('<a />', {
+                'href': '#',
+                'id': 'attach-viewall'
+            })
+            .html('<i class="fa fa-paperclip fa-fw"></i> 查看')
+            .on('click', function() {
+                var urls = [];
+                $('.attachbox-check-item').children('input[type="checkbox"]:checked').each(function() {
+                    urls.push($(this).parent('.attachbox-check-item').children('a').attr('href'));
+                });
+                clickViewfunction(urls);
+            });
+        // $download = $('<a />', {
+        //     'href': '#'
+        // }).html('<i class="fa fa-download fa-fw"></i> 下载');
+        $downloadbar = $('<label />', {
+            'id': 'attachbox-downloadbar',
+            'class': 'attachbox-view'
+        }).append($view);
+        $downloadbar.appendTo($toolbar);
+    }
+})(jQuery);

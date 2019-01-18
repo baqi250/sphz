@@ -1,0 +1,402 @@
+package com.lggh.controller.sphz.fawen;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.shiro.crypto.hash.SimpleHash;
+import org.bson.Document;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.bstek.ureport.Utils;
+import com.bstek.ureport.export.ExportManager;
+import com.bstek.ureport.export.html.HtmlReport;
+import com.lggh.controller.base.BaseController;
+import com.lggh.entity.system.Dictionaries;
+import com.lggh.entity.system.Role;
+import com.lggh.service.sphz.BuildingManager;
+import com.lggh.service.sphz.ChangeManager;
+import com.lggh.service.sphz.FileManager;
+import com.lggh.service.sphz.MessageManager;
+import com.lggh.service.sphz.OpinionsManager;
+import com.lggh.service.sphz.PcompletionManager;
+import com.lggh.service.sphz.PpermitionManager;
+import com.lggh.service.sphz.ProjManager;
+import com.lggh.service.sphz.TrafficManager;
+import com.lggh.service.system.dictionaries.DictionariesManager;
+import com.lggh.util.AppUtil;
+import com.lggh.util.Const;
+import com.lggh.util.ConvertUtil;
+import com.lggh.util.FilePageData;
+import com.lggh.util.FileUpload;
+import com.lggh.util.FtpUtils;
+import com.lggh.util.GetPinyin;
+import com.lggh.util.Jurisdiction;
+import com.lggh.util.MongoDBUtil;
+import com.lggh.util.ObjectExcelRead;
+import com.lggh.util.PageData;
+import com.lggh.util.PathUtil;
+import com.lggh.util.SphzUtils;
+import com.lggh.util.Tools;
+import com.mongodb.BasicDBList;
+import com.mongodb.BasicDBObject;
+import com.mongodb.MongoClient;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.UpdateOptions;
+
+import net.sf.json.JSONArray;
+
+@Controller
+@RequestMapping("/sphz/fawen")
+public class FawenController extends BaseController {
+	@Resource(name="fileService")
+	private FileManager fileService;
+	@Resource(name="dictionariesService")
+	private DictionariesManager dictionariesService;
+	private MongoClient mongoClient;
+	
+	/**
+	 * 去项目列表页面
+	 * @return
+	 * @throws Exception 
+	 */
+	@RequestMapping(value="/goList")
+	public ModelAndView goList() throws Exception{
+		ModelAndView mv = this.getModelAndView();
+		PageData pd = new PageData();
+		pd=this.getPageData();
+		pd.put("BIANMA", "021");
+		List<Dictionaries> fwlxList = dictionariesService.listAllItemsByCodeValue(pd);//列出所有发文类型
+		if(null==pd.getString("XMWYM")||"".equals(pd.getString("XMWYM"))){
+			mv.addObject("XMWYM","");
+		}else{
+			mv.addObject("XMWYM",pd.getString("XMWYM"));
+		}
+		mv.addObject("fwlxList", fwlxList);
+		mv.setViewName("sphz/fawen/fawen_list");
+		return mv;
+	}
+	
+	/**
+	 * 获取发文列表
+	 * @return
+	 * @throws Exception 
+	 */
+	@RequestMapping(value="/list")
+	@ResponseBody
+	public Object list() throws Exception{
+		
+		Map<String,Object> map = new HashMap<String,Object>();
+		String errInfo = "success"; 
+		PageData pd = new PageData();
+		List<Map<String, Object>> fawenList=new ArrayList<Map<String,Object>>();
+		
+		try{
+			pd = this.getPageData();
+			String fwlx=pd.getString("fwlx");
+			String keyword=pd.getString("keyword");
+			String XMWYM=pd.getString("XMWYM");
+			Integer sEcho=Integer.parseInt(pd.getString("sEcho"));
+			Integer iDisplayStart =Integer.parseInt(pd.getString("iDisplayStart"));
+			Integer iDisplayLength =Integer.parseInt(pd.getString("iDisplayLength"));
+			mongoClient = MongoDBUtil.initMongo();
+			Document document = new Document();
+			BasicDBObject basicDBObject = new BasicDBObject();
+			document.append("DRSJ", -1);
+			BasicDBList endList = new BasicDBList();
+			BasicDBObject forceEnd = new BasicDBObject();
+			if(null!=fwlx&&!"".equals(fwlx)){
+				forceEnd.put("FWLX", fwlx);
+				endList.add(forceEnd);
+			}
+			
+			BasicDBObject condEnd = new BasicDBObject();
+			if(null!=XMWYM&&!"".equals(XMWYM)){
+				condEnd.put("XMWYM", XMWYM);
+				endList.add(condEnd);
+			}
+
+			BasicDBList condList = new BasicDBList();
+			BasicDBObject autoEnd = new BasicDBObject();
+			if(null!=keyword&&!"".equals(keyword)){
+				condList.add(new BasicDBObject("XMMC",  Pattern.compile("^.*"+keyword+".*$", Pattern.CASE_INSENSITIVE)));
+				condList.add(new BasicDBObject("WHWYM",  Pattern.compile("^.*"+keyword+".*$", Pattern.CASE_INSENSITIVE)));
+				condList.add(new BasicDBObject("FWWH",  Pattern.compile("^.*"+keyword+".*$", Pattern.CASE_INSENSITIVE)));
+				autoEnd.put("$or",condList);
+				endList.add(autoEnd);
+			}
+			
+			
+			if((null!=fwlx&&!"".equals(fwlx))||(null!=keyword&&!"".equals(keyword))||(null!=XMWYM&&!"".equals(XMWYM))){
+				basicDBObject.put("$and",endList);
+			}
+			
+			FindIterable<Document> documents  = mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("fawen")
+					.find(basicDBObject).sort(document).skip(iDisplayStart).limit(iDisplayLength);
+			long count = mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("fawen")
+			.count(basicDBObject);
+			
+			Integer intValue = new Long(count).intValue();
+			//int initEcho=sEcho+1;
+			fawenList = MongoDBUtil.documents2MapList(documents);
+			map.put("iDisplayStart",iDisplayStart);
+			map.put("iDisplayLength",iDisplayLength);
+			map.put("sEcho", sEcho);
+			map.put("iTotalRecords", intValue);
+			map.put("iTotalDisplayRecords", intValue);//显示的条数 
+			
+		} catch(Exception e){
+			errInfo=e.toString();
+			logger.error(e.toString(), e);
+		}
+		map.put("fawenList", fawenList);
+		map.put("result", errInfo);				//返回结果
+		//close();
+		return AppUtil.returnObject(new PageData(), map);
+	}
+	
+	public void close(){//关闭mongoclient
+		if(mongoClient!=null){
+			mongoClient.close();
+			mongoClient=null;
+		}
+	}
+	/**
+	 * 根据文号唯一码和发文类型id获取项目
+	 * @return
+	 * @throws Exception 
+	 */
+	@RequestMapping(value="/getFawenByWhwym")
+	@ResponseBody
+	public Object getProjByKey() throws Exception{
+		
+		Map<String,Object> map = new HashMap<String,Object>();
+		String errInfo = "success"; 
+		PageData pd = new PageData();
+		List<Map<String, Object>> fawenList=new ArrayList<Map<String,Object>>();
+		List<Map<String, Object>> fawenList1=new ArrayList<Map<String,Object>>();
+		try{
+			pd = this.getPageData();
+	
+			mongoClient = MongoDBUtil.initMongo();
+			Document document = new Document();
+			document.append("WHWYM", pd.get("WHWYM"));
+			document.append("FWLXID", pd.get("FWLXID"));
+			FindIterable<Document> documents  = mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("fawen")
+					.find(document).projection(new Document("_id",0).append("FAWEN_ID", 0).append("DRSJ", 0));
+			//close();
+			fawenList = MongoDBUtil.documents2MapList(documents);
+			fawenList1= SphzUtils.fawenLeftJoinDic(dictionariesService, fawenList);
+			
+
+		} catch(Exception e){
+			errInfo=e.toString();
+			logger.error(e.toString(), e);
+		}
+		
+		
+		map.put("fawenList", fawenList1);
+		map.put("result", errInfo);				//返回结果
+		return AppUtil.returnObject(new PageData(), map);
+	}
+	
+	/**
+	 * 去修改发证信息页面
+	 * @return
+	 * @throws Exception 
+	 */
+	@RequestMapping(value="/goEdit")
+	public ModelAndView goEdit() throws Exception{
+		ModelAndView mv = this.getModelAndView();
+		PageData pd = new PageData();
+		//pd.put("DEPARTMENT",Jurisdiction.getUsername());
+		pd=this.getPageData();
+		
+		mongoClient = MongoDBUtil.initMongo();
+		Document document = new Document();
+		document.append("WHWYM", pd.getString("WHWYM"));
+		document.append("FWLXID", pd.getString("FWLXID"));
+		FindIterable<Document> documents  = mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("fawen")
+				.find(document);
+		
+		List<Map<String, Object>> documents2MapList = MongoDBUtil.documents2MapList(documents);
+
+		Map<String, Object> map = documents2MapList.get(0);
+		pd.put("FILE_TYPE",1);
+		PageData pdRed = fileService.findByWHWYM(pd);
+		if(null!=pdRed){
+			map.put("redFileName",pdRed.getString("FILE_NAME"));
+		}
+		
+		//申办类型
+		pd.put("BIANMA", "013");
+		List<Dictionaries> sblxList = dictionariesService.listAllItemsByCodeValue(pd);//列出所有申办类型
+		mv.addObject("sblxList", sblxList);
+		
+		//所属区划
+		pd.put("BIANMA", "015");
+		List<Dictionaries> ssqhList = dictionariesService.listAllItemsByCodeValue(pd);//列出所有所属区划
+		mv.addObject("ssqhList", ssqhList);
+		
+		//审批阶段
+		pd.put("BIANMA", "018");
+		List<Dictionaries> spjdList = dictionariesService.listAllItemsByCodeValue(pd);//列出所有审批阶段
+		mv.addObject("spjdList", spjdList);
+		
+		//工程类别
+		pd.put("BIANMA", "017");
+		List<Dictionaries> gclbList = dictionariesService.listAllItemsByCodeValue(pd);//列出所有工程类别
+		mv.addObject("gclbList", gclbList);
+		
+		//项目类型
+		pd.put("BIANMA", "011");
+		List<Dictionaries> xmlxList = dictionariesService.listAllItemsByCodeValue(pd);//列出所有项目类型
+		mv.addObject("xmlxList", xmlxList);
+		
+		//承办部门
+		pd.put("BIANMA", "008");
+		List<Dictionaries> cbbmList = dictionariesService.listAllItemsByCodeValue(pd);
+		mv.addObject("cbbmList", cbbmList);
+		
+		//发文类型
+		pd.put("BIANMA", "014");
+		List<Dictionaries> fwlxList = dictionariesService.listAllItemsByCodeValue(pd);
+		mv.addObject("fwlxList", fwlxList);
+		
+		//混合用地性质
+		pd.put("BIANMA", "016");
+		List<Dictionaries> hhydxzList = dictionariesService.listAllItemsByCodeValue(pd);
+		mv.addObject("hhydxzList", hhydxzList);
+		
+		//档案来源
+		pd.put("BIANMA", "022");
+		List<Dictionaries> dalyList = dictionariesService.listAllItemsByCodeValue(pd);
+		mv.addObject("dalyList", dalyList);
+		
+		//审核状态
+		pd.put("BIANMA", "023");
+		List<Dictionaries> shztList = dictionariesService.listAllItemsByCodeValue(pd);
+		mv.addObject("shztList", shztList);
+		
+		//道路等级
+		pd.put("BIANMA", "024");
+		List<Dictionaries> dldjList = dictionariesService.listAllItemsByCodeValue(pd);
+		mv.addObject("dldjList", dldjList);
+		
+		//断面形式
+		pd.put("BIANMA", "025");
+		List<Dictionaries> dmxsList = dictionariesService.listAllItemsByCodeValue(pd);
+		mv.addObject("dmxsList", dmxsList);
+		
+		//管线类型
+		pd.put("BIANMA", "007");
+		List<Dictionaries> gxlxList = dictionariesService.listAllItemsByCodeValue(pd);
+		mv.addObject("gxlxList", gxlxList);
+		
+		//道路类型
+		pd.put("BIANMA", "028");
+		List<Dictionaries> dllxList = dictionariesService.listAllItemsByCodeValue(pd);
+		mv.addObject("dllxList", dllxList);
+		
+		//建筑物使用性质
+		pd.put("BIANMA", "009");
+		List<Dictionaries> jzwsyxzList = dictionariesService.listAllItemsByCodeValue(pd);
+		mv.addObject("jzwsyxzList", jzwsyxzList);
+		
+		//投资管理类型
+		pd.put("BIANMA", "026");
+		List<Dictionaries> tzgllxList = dictionariesService.listAllItemsByCodeValue(pd);
+		mv.addObject("tzgllxList", tzgllxList);
+		
+		//土地使用类型
+		pd.put("BIANMA", "027");
+		List<Dictionaries> tdsylxList = dictionariesService.listAllItemsByCodeValue(pd);
+		mv.addObject("tdsylxList", tdsylxList);
+		
+		mv.addObject("pd",map);
+		mv.addObject("msg", "edit");
+		mv.addObject("title", "信息编辑");
+		mv.setViewName("sphz/fawen/fawen_edit");
+		//close();
+		return mv;
+	}
+	
+	@RequestMapping(value="/edit")
+	@ResponseBody
+	public Object edit(HttpServletRequest request) throws Exception{
+		Map<String,Object> map = new HashMap<String,Object>();
+		String errInfo = "success";
+		FilePageData pd = new FilePageData(request);
+		pd.remove("file");
+		SimpleDateFormat df1=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		pd.put("XGSJ", df1.format(System.currentTimeMillis()));
+		try {
+			mongoClient = MongoDBUtil.initMongo();
+			Document document = ConvertUtil.convertDocByMap(pd);
+			mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("fawen").updateOne(Filters.eq("FAWEN_ID", pd.getString("FAWEN_ID")),new Document("$set",document));
+			
+			//上传红线文件
+			SphzUtils.uploadFile(request, pd.getString("WHWYM"), "redFile", "hxfwbasepath", 1, fileService);//红线范围
+		} catch (Exception e) {
+			errInfo=e.toString();
+		}
+		
+/*		pd.put("PROJ_ID",PROJ_ID);
+		pd.put("PROJ_TBR",Jurisdiction.getUsername());
+		pd.put("PROJ_TBBM",Jurisdiction.getUsername());
+		SimpleDateFormat df1=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		pd.put("PROJ_TBRQ",df1.format(System.currentTimeMillis()));
+		try {
+			mongoClient = MongoDBUtil.initMongo();
+			Document document = ConvertUtil.convertDocByMap(pd);
+			System.out.println(MongoDBUtil.getDbName());
+			mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("xiangmu")
+					.insertOne(document);
+			//添加红线文件
+			SphzUtils.uploadFile(request, PROJ_ID, "redFile", "redbasepath", 2, fileService);//红线范围
+			mongoClient.close();
+		} catch (Exception e) {
+			errInfo=e.toString();
+		}*/
+		map.put("result", errInfo);				//返回结果
+		//close();
+		return AppUtil.returnObject(new PageData(), map);
+	}
+	
+	/**
+	 * 去规划许可建筑面积报表页面
+	 * @return
+	 * @throws Exception 
+	 */
+	@RequestMapping(value="/exportGhxkjzmj")
+	public ModelAndView exportGhxkjzmj(HttpServletRequest request) throws Exception{
+		ModelAndView mv = this.getModelAndView();
+		ExportManager  exportManager=(ExportManager)Utils.getApplicationContext().getBean(ExportManager.BEAN_ID);
+		Map<String,Object> parameters=new HashMap<String,Object>();
+		parameters.put("param", request.getParameter("param"));
+		HtmlReport htmlReport = exportManager.exportHtml("file:城乡规划许可管理情况表.ureport.xml",request.getContextPath(),parameters);
+		String html="<style type=\"text/css\">";
+		html+=htmlReport.getStyle();
+		html+="</style>";
+		html+=htmlReport.getContent();
+		mv.addObject("param", "gagaga");
+		mv.addObject("html", html);
+		mv.setViewName("sphz/fawen/test");
+		return mv;
+	}
+	
+	
+}

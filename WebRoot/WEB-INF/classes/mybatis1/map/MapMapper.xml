@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="MapMapper">
+	
+	<!--模型表名 -->
+	<sql id="tableName">
+		layer_tree
+	</sql>
+	
+	<!-- 列表 -->
+	<select id="listData" parameterType="pd" resultType="pd">
+		select t.id,t.name,t.pid,t.status,t.url,t.sort,t.type,t.layer_type,t.layer_name,t.dataurl from layer_tree t where 1=1 ORDER BY sort 
+	</select>
+	
+</mapper>

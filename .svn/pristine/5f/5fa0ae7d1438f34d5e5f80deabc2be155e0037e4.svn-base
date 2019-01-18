@@ -1,0 +1,41 @@
+﻿define([], function () {
+	serverUrl="";
+	photosUrl="http://192.168.109.44:8091";//360全景服务器
+    mapApp.layerConfig = {
+        //底图地址
+        domMapUrl: "http://192.168.109.44:6080/arcgis/rest/services/lsgg/lgygyx/MapServer",  
+        //GeometryService
+        GeometryServiceUrl:"http://192.168.109.44:6080/arcgis/rest/services/Utilities/Geometry/GeometryServer",
+        /**
+         * 蓝谷土规
+         */
+        "蓝谷土规": {	
+            name: "蓝谷土规 ",
+            serverIndex: 0, //该图层在图层服务中的索引号
+            layerName: "lgtg",
+            outFields: ["BSM", "YSDM", "TBBH", "GHDLMC", "GHDLMJ", "XZQDM", "SM", 'Shape_Leng', "区市", "SHAPE_Length", "SHAPE_Area"],
+            formatFields: ["BSM", "YSDM", "TBBH", "GHDLMC", "区市"],
+            alias: ["测试BSM", "测试YSDM", "测试TBBH", "测试GHDLMC", "区市"]  
+        },
+        "蓝谷总规": {	
+            name: "蓝谷总规 ",
+            serverIndex: 0, //该图层在图层服务中的索引号
+            layerName: "lgzg",
+            outFields: ["OBJECTID", "SHAPE", "YDXZDM", "YDXZMC", "YDMJ"],
+            formatFields: ["用地性质代码", "用地性质名称", "用地面积"],
+            alias: ["用地性质代码", "用地性质名称", "用地面积"]  
+        }
+        /**
+         * 土地利用总体规划图层
+         */
+        /*tdlyztgh: {
+            name: "土地利用总体规划",
+            serverIndex: 0, //该图层在图层服务中的索引号
+            layerName: "tdlyztgh",
+            outFields: ["名称", "所属分处", "路线名称", "桩号", "CAMERA_DIRECTION", "安装位置", "类型", "开启状态", "SITEID", 'ORG_CODE', "VIDEO_NO", "CAMERA_CODE", "工作状态","LAYER_TYPE"],
+            formatFields: ["名称", "所属分处", "路线名称&桩号:innerPubFun.stakeRenderer&CAMERA_DIRECTION", "类型", "工作状态"],
+            alias: ["名称", "所属单位", "位置", "类型", "状态"]  
+        },*/
+        
+    }
+})

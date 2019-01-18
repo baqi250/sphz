@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="PpermitionMapper">
+	
+	<!--表名 -->
+	<sql id="tableName">
+		sphz_planning_permition
+	</sql>
+	<!--表名 -->
+	<sql id="tableName1">
+		sphz_project
+	</sql>
+	<!--数据字典表名 -->
+	<sql id="dicTableName">
+		SYS_DICTIONARIES
+	</sql>
+	
+	<!-- 字段 -->
+	<sql id="Field">
+		f.PPERMITION_ID,	
+		f.LAND_AREA,	
+		f.LAND_USE,	
+		f.SPONGE_REQUIRE,	
+		f.PROJ_NO,	
+		f.OPERATOR,	
+		f.DEPARTMENT,	
+		f.OPINIONS_NO,	
+		f.OPINIONS_DATE,	
+		f.STATUS,	
+		f.FURNISH,	
+		f.ADD_TIME,	
+		f.UPDATE_TIME,
+		f.PROJ_NAME,	
+		f.PROJ_LOCATION,	
+		f.PROJ_UNIT,	
+		f.ORG_CODE,	
+		f.APPLICANT_NAME,	
+		f.APPLICANT_PHONE,
+		f.PROJ_HOLD,
+		f.PASS_TIME,
+		f.REJECT_REASON
+	</sql>
+	<!-- 字段 -->
+	<sql id="Field1">
+		p.ID,
+		p.PROJ_NO,
+		p.PROJ_NAME,	
+		p.PROJ_LOCATION,	
+		p.PROJ_UNIT,	
+		p.ORG_CODE,	
+		p.APPLICANT_NAME,	
+		p.APPLICANT_PHONE
+	</sql>
+	
+	<!-- 字段用于新增 -->
+	<sql id="Field2">
+		PPERMITION_ID,	
+		LAND_AREA,	
+		LAND_USE,	
+		SPONGE_REQUIRE,	
+		PROJ_NO,	
+		OPERATOR,	
+		DEPARTMENT,	
+		OPINIONS_NO,	
+		OPINIONS_DATE,	
+		STATUS,	
+		FURNISH,	
+		ADD_TIME,	
+		UPDATE_TIME,
+		PROJ_NAME,	
+		PROJ_LOCATION,	
+		PROJ_UNIT,	
+		ORG_CODE,	
+		APPLICANT_NAME,	
+		APPLICANT_PHONE,
+		PROJ_HOLD,
+		PASS_TIME,
+		REJECT_REASON
+	</sql>
+	
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{PPERMITION_ID},	
+		#{LAND_AREA},	
+		#{LAND_USE},	
+		#{SPONGE_REQUIRE},	
+		#{PROJ_NO},	
+		#{OPERATOR},	
+		#{DEPARTMENT},	
+		#{OPINIONS_NO},	
+		#{OPINIONS_DATE},	
+		#{STATUS},	
+		#{FURNISH},	
+		#{ADD_TIME},	
+		#{UPDATE_TIME},
+		#{PROJ_NAME},	
+		#{PROJ_LOCATION},	
+		#{PROJ_UNIT},
+		#{ORG_CODE},
+		#{APPLICANT_NAME},
+		#{APPLICANT_PHONE},
+		#{PROJ_HOLD},
+		#{PASS_TIME},
+		#{REJECT_REASON}
+	</sql>
+	
+	<!-- 新增-->
+	<insert id="save" parameterType="pd">
+		insert into 
+	<include refid="tableName"></include>
+		(
+	<include refid="Field2"></include>
+		) values (
+	<include refid="FieldValue"></include>
+		)
+	</insert>
+	
+	<!-- 删除-->
+	<delete id="delete" parameterType="pd">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			PPERMITION_ID = #{PPERMITION_ID}
+	</delete>
+	
+	<!-- 修改 -->
+	<update id="edit" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set 
+			LAND_AREA = #{LAND_AREA},
+			LAND_USE = #{LAND_USE},
+			SPONGE_REQUIRE = #{SPONGE_REQUIRE},
+			PROJ_NO = #{PROJ_NO},
+			OPERATOR = #{OPERATOR},
+			OPINIONS_NO = #{OPINIONS_NO},
+			OPINIONS_DATE = #{OPINIONS_DATE},
+			STATUS = #{STATUS},
+			UPDATE_TIME = #{UPDATE_TIME},
+			PROJ_NAME = #{PROJ_NAME},
+			PROJ_LOCATION = #{PROJ_LOCATION},
+			PROJ_UNIT = #{PROJ_UNIT},
+			ORG_CODE=#{ORG_CODE},
+			APPLICANT_NAME=#{APPLICANT_NAME},
+			APPLICANT_PHONE=#{APPLICANT_PHONE}
+		where 
+			PPERMITION_ID = #{PKID}
+	</update>
+	
+		<!-- 修改状态 -->
+	<update id="editStatus" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set 
+			STATUS = #{STATUS},
+			PASS_TIME=#{PASS_TIME},
+			REJECT_REASON=#{REJECT_REASON}
+		where 
+			PPERMITION_ID = #{PPERMITION_ID}
+	</update>
+	
+	<!-- 通过ID获取数据 -->
+	<select id="findById" parameterType="pd" resultType="pd">
+		select 
+		d.NAME as LAND_USE_NAME,
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include> f  
+		left join
+		<include refid="dicTableName"></include> d 
+		on
+		f.LAND_USE=d.DICTIONARIES_ID 
+		where 
+			f.PPERMITION_ID = #{PKID}
+	</select>
+	
+	<!-- 列表 -->
+	<select id="datalistPage" parameterType="page" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include> f
+		where 1=1
+		<if test="pd.keywords!= null and pd.keywords != ''"><!-- 关键词检索 -->
+			and
+				(
+				<!--	根据需求自己加检索条件
+					字段1 LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%')
+					 or 
+					字段2 LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%') 
+				-->
+				)
+		</if>
+	</select>
+	
+	<!-- 列表(全部) -->
+	<select id="listAll" parameterType="pd" resultType="pd">
+		select
+		3 AS STAGE_TYPE,
+		f.PPERMITION_ID as PKID,
+		d.NAME as LAND_USE_NAME,
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include> f  
+		left join
+		<include refid="dicTableName"></include> d 
+		on
+		f.LAND_USE=d.DICTIONARIES_ID 
+		where 1=1 
+		and 
+		(f.STATUS=3 or f.STATUS=4 or f.STATUS=5) 
+		<if test="DEPARTMENT!= null and DEPARTMENT != ''"><!-- 关键词检索 -->
+			and
+				(
+				f.DEPARTMENT= #{DEPARTMENT}
+				)
+		</if>	
+		<if test="STATUS!= null and STATUS != ''"><!-- 报建信息状态检索 -->
+			and
+				(
+				f.STATUS= #{STATUS}
+				)
+		</if>	
+		
+		<!-- left join
+		<include refid="tableName1"></include> p 
+		on
+		f.PROJ_NO=p.PROJ_NO  -->
+	</select>
+	
+	<!-- 列表(筛选条件) -->
+	<select id="searchList" parameterType="pd" resultType="pd">
+		select
+		3 AS STAGE_TYPE,
+		f.PPERMITION_ID as PKID,
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include> f 
+		where 1=1 
+		<if test="DEPARTMENT!= null and DEPARTMENT != ''"><!-- 关键词检索 -->
+			and
+				(
+				f.DEPARTMENT= #{DEPARTMENT}
+				)
+		</if>	
+	</select>
+	
+	<!-- 批量删除 -->
+	<delete id="deleteAll" parameterType="String">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			PPERMITION_ID in
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+                 #{item}
+		</foreach>
+	</delete>
+	
+	<!-- 获取总数 -->
+	<select id="getCountByRegion" parameterType="pd" resultType="pd">
+		select 
+			count(1) fwCount
+		from 
+		<include refid="tableName"></include> f
+		where 1=1 
+		<if test="REGION!= null and REGION!= '全部'"><!-- 报建信息状态检索 -->
+			and
+				(
+				f.DEPARTMENT= #{REGION}
+				)
+		</if> 
+			and f.STATUS=4 
+		<if test="DATACONDITION!= null"><!-- 近六个月 -->
+			and
+				(
+				f.OPINIONS_DATE BETWEEN DATE_SUB((SELECT DATE_ADD(CURDATE(),INTERVAL -DAY(CURDATE())+1 DAY)),INTERVAL #{DATACONDITION} MONTH) AND NOW()
+				)
+		</if>
+		
+	</select>
+	
+	<!-- fh313596790qq(青苔) -->
+</mapper>

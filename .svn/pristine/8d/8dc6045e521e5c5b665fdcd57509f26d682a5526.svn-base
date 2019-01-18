@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>layui</title>
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <link rel="stylesheet" href="../layui/css/layui.css"  media="all">
+  <style type="text/css">
+  	.layui-layer-title {
+  		    background-color:red;
+  	}
+  </style>
+  <!-- 注意：如果你直接复制所有代码到本地，上述css路径需要改成你本地的 -->
+</head>
+<body>
+ 
+<div class="site-demo-button" id="layerDemo" >
+  <button data-method="showDetail" class="layui-btn">多窗口模式，层叠置顶</button>
+</div>
+        
+<script src="../layui/layui.js" charset="utf-8"></script>
+<!-- 注意：如果你直接复制所有代码到本地，上述js路径需要改成你本地的 -->
+<script>
+layui.use('layer', function(){ //独立版的layer无需执行这一句
+  var $ = layui.jquery, layer = layui.layer ,element = layui.element; //独立版的layer无需执行这一句
+  
+  //触发事件
+  var active = {
+    showDetail: function(){
+      var that = this; 
+      //多窗口模式，层叠置顶
+      layer.open({
+        type: 2 //此处以iframe举例
+        ,title: '当你选择该窗体时，即会在最顶端'
+        ,area: ['642px', '350px']
+        ,shade: 0
+        ,maxmin: true
+        ,offset: 'lb'
+        ,content: 'video_iframe.html'
+        ,btn: ['关闭'] //只是为了演示
+        ,yes: function(){
+          layer.closeAll(); 
+        }        
+        ,zIndex: layer.zIndex //重点1
+        ,success: function(layero){
+          layer.setTop(layero); //重点2
+        }
+      });
+    }
+  };
+  
+  $('#layerDemo .layui-btn').on('click', function(){
+    var othis = $(this), method = othis.data('method');
+    active[method] ? active[method].call(this, othis) : '';
+  });
+  
+});
+	
+</script>
+
+</body>
+</html>

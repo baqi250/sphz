@@ -1,0 +1,190 @@
+package com.sphz.util;
+
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Map.Entry;
+
+import org.bson.Document;
+
+import com.mongodb.MongoClient;
+import com.mongodb.MongoClientOptions;
+import com.mongodb.MongoClientOptions.Builder;
+import com.mongodb.client.FindIterable;
+import com.mongodb.util.JSON;
+import com.mongodb.MongoCredential;
+import com.mongodb.ReadPreference;
+import com.mongodb.ServerAddress;
+import com.mongodb.WriteConcern;
+
+/**
+ * @描述 : mongodb工具类
+ * @创建者：liushengsong
+ * @创建时间： 2017年2月20日下午3:00:44
+ *
+ */
+public class MongoDBUtil {
+
+	/**
+	 * @描述 : 初始化MongoClient
+	 * @创建者：liushengsong
+	 * @创建时间： 2017年2月20日下午3:01:43
+	 *
+	 * @return
+	 * @throws IOException
+	 */
+	public static MongoClient initMongo() throws IOException {
+		// 加载mongo配置文件
+		InputStream inputStream = DbFH.class.getClassLoader().getResourceAsStream("mongodb.properties");
+		Properties properties = new Properties();
+		properties.load(inputStream);
+		WriteConcern concern = new WriteConcern(Integer.valueOf(properties
+				.getProperty("mongo.write")), Integer.valueOf(properties
+				.getProperty("mongo.writeTimeout")));
+		concern.withJournal(Boolean.valueOf(properties.getProperty("mongo.journal")));
+		Builder builder = MongoClientOptions
+				.builder()
+				.connectionsPerHost(
+						Integer.valueOf(properties
+								.getProperty("mongo.connectionsPerHost")))
+				.connectTimeout(
+						Integer.valueOf(properties
+								.getProperty("mongo.connectTimeout")))
+				.cursorFinalizerEnabled(
+						Boolean.valueOf(properties
+								.getProperty("mongo.cursorFinalizerEnabled")))
+				.maxWaitTime(
+						Integer.valueOf(properties.getProperty("mongo.maxWaitTime")))
+				.threadsAllowedToBlockForConnectionMultiplier(
+						Integer.valueOf(properties
+								.getProperty("mongo.threadsAllowedToBlockForConnectionMultiplier")))
+				.socketTimeout(
+						Integer.valueOf(properties.getProperty("mongo.socketTimeout")))
+				.socketKeepAlive(
+						Boolean.valueOf(properties
+								.getProperty("mongo.socketKeepAlive")))
+				.writeConcern(concern);
+		if (Boolean.valueOf(properties.getProperty("mongo.readSecondary"))) {
+			builder.readPreference(ReadPreference.secondaryPreferred());
+		}
+		String[] address = properties.getProperty("mongo.hostConfString").split(":");
+		ServerAddress serverAddress = new ServerAddress(address[0],
+				Integer.valueOf(address[1]));
+		//List<ServerAddress> lists=new ArrayList<ServerAddress>();
+		//lists.add(serverAddress);
+		//MongoCredential credential=MongoCredential.createCredential(properties.getProperty("mongo.username"), properties.getProperty("mongo.dbname"), properties.getProperty("mongo.password").toCharArray());
+		//List<MongoCredential> listm=new ArrayList<MongoCredential>();
+		//listm.add(credential);
+		return new MongoClient(serverAddress, builder.build());
+		//return new MongoClient(lists, listm,builder.build());
+	}
+	
+	public static String getDbName(){
+		// 加载mongo配置文件
+				InputStream inputStream = DbFH.class.getClassLoader().getResourceAsStream("mongodb.properties");
+				Properties properties = new Properties();
+				try {
+					properties.load(inputStream);
+					return properties.getProperty("mongo.dbname");
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					return null;
+				}
+	}
+	
+	//mongoClient查询结果转换成map集合类
+	public static List<Map<String,Object>>documents2MapList(FindIterable<Document> documents){
+		List<Map<String,Object>> list=new ArrayList<Map<String,Object>>();
+		for(Document d:documents){
+			Map map= (Map) JSON.parse(d.toJson());
+			Map<String,Object> mapc=new HashMap<String,Object>();
+			for(Object mapData:map.entrySet()){
+				Map.Entry<String, Object>entry=(Entry<String, Object>) mapData;
+				mapc.putIfAbsent(entry.getKey(), entry.getValue());
+			}
+			list.add(mapc);
+		}
+		return list;
+	}
+	public static List<Map<String, Object>> getFawenList(Document document){
+		List<Map<String, Object>> fawenList=new ArrayList<Map<String,Object>>();
+		try {
+			MongoClient mongoClient = MongoDBUtil.initMongo();
+			FindIterable<Document> documents  = mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("fawen")
+					.find(document).projection(new Document("_id",0).append("FAWEN_ID", 0).append("DRSJ", 0));
+			fawenList= MongoDBUtil.documents2MapList(documents);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return fawenList;
+	}
+	
+	public static double jsjzl(List<Map<String, Object>> fawenList){
+		double zjzmj = 0d;
+		String jzmj;
+		for(int i=0;i<fawenList.size();i++){
+			jzmj=fawenList.get(i).get("ZJZMJ").toString();
+			if(null!=jzmj&&!jzmj.equals("")){
+				zjzmj+=Double.parseDouble(jzmj);
+			}
+			
+		}
+		return zjzmj;
+	}
+	
+	public static String convertObject2String(Object o){
+		if(null==o){
+			return "";
+		}else{
+			return (String)o;		
+		}
+	}
+	
+	public static double[] jsgxl(List<Map<String, Object>> fawenList){
+		double[] gxArray={0d,0d};
+		String gxcd;
+		for(int i=0;i<fawenList.size();i++){
+			gxcd=fawenList.get(i).get("GXCD").toString();
+			if(null!=gxcd&&!gxcd.equals("")){
+				Double cd=Double.parseDouble(gxcd);
+				gxArray[0]+=cd;
+				if(cd<500d){
+					cd= cd*2;
+				}else if(cd>=500d && cd<=1000d){
+					cd=cd*3;
+				}else{
+					//tddo:管线类型
+					cd=cd*4;
+				}
+				gxArray[1]+=cd;
+			}
+		
+		} 
+		return gxArray;
+	}
+	
+	public static double[] jsdll(List<Map<String, Object>> fawenList){
+		double[] dlArray={0d,0d};
+		String dlcd;
+		for(int i=0;i<fawenList.size();i++){
+			dlcd=fawenList.get(i).get("DLCD").toString();
+			if(null!=dlcd&&!dlcd.equals("")){
+				Double cd=Double.parseDouble(dlcd);
+				dlArray[0]+=cd;
+			}
+		
+		} 
+		return dlArray;
+	}
+	
+}

@@ -1,0 +1,1900 @@
+package com.lggh.controller.sphz.project;
+
+import java.math.RoundingMode;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+
+import org.bson.Document;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.bstek.ureport.Utils;
+import com.bstek.ureport.export.ExportManager;
+import com.bstek.ureport.export.html.HtmlReport;
+import com.lggh.controller.base.BaseController;
+import com.lggh.entity.system.Dictionaries;
+import com.lggh.service.sphz.FileManager;
+import com.lggh.service.system.dictionaries.DictionariesManager;
+import com.lggh.util.AppUtil;
+import com.lggh.util.ConvertUtil;
+import com.lggh.util.FilePageData;
+import com.lggh.util.MongoDBUtil;
+import com.lggh.util.PageData;
+import com.lggh.util.SphzUtils;
+import com.mongodb.BasicDBList;
+import com.mongodb.BasicDBObject;
+import com.mongodb.MongoClient;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Sorts;
+//无用，仅做备份
+@Controller
+@RequestMapping("/sphz/project2")
+public class ProjectController_backup2 extends BaseController {
+	@Resource(name="fileService")
+	private FileManager fileService;
+	@Resource(name="dictionariesService")
+	private DictionariesManager dictionariesService;
+	private MongoClient mongoClient;
+	
+	/**
+	 * 去项目列表页面
+	 * @return
+	 * @throws Exception 
+	 */
+	@RequestMapping(value="/goList")
+	public ModelAndView goList() throws Exception{
+		ModelAndView mv = this.getModelAndView();
+		PageData pd = new PageData();
+		pd.put("BIANMA", "021");
+		List<Dictionaries> fwlxList = dictionariesService.listAllItemsByCodeValue(pd);//列出所有发文类型
+		mv.addObject("fwlxList", fwlxList);
+		mv.setViewName("sphz/project/project_list");
+		return mv;
+	}
+	
+	/**
+	 * 去项目空间页面
+	 * @return
+	 * @throws Exception 
+	 */
+	@RequestMapping(value="/goSpatial")
+	public ModelAndView goSpatial() throws Exception{
+		ModelAndView mv = this.getModelAndView();
+		PageData pd = new PageData();
+		mv.setViewName("sphz/project/project_map");
+		return mv;
+	}
+	
+	/**
+	 * 去项目空间页面
+	 * @return
+	 * @throws Exception 
+	 */
+	@RequestMapping(value="/goMap")
+	public ModelAndView goMap() throws Exception{
+		ModelAndView mv = this.getModelAndView();
+		PageData pd = new PageData();
+		mv.setViewName("sphz/project/map");
+		return mv;
+	}
+	
+	/**
+	 * 去发文信息详情页面
+	 * @return
+	 * @throws Exception 
+	 */
+	@RequestMapping(value="/goFawenDetail")
+	public ModelAndView goFawenDetail() throws Exception{
+		ModelAndView mv = this.getModelAndView();
+		PageData pd = new PageData();
+		pd=this.getPageData();
+		mv.addObject("pd", pd);
+		mv.setViewName("sphz/project/fawen_detail");
+		return mv;
+	}
+	
+	/**
+	 * 去项目详情页面
+	 * @return
+	 * @throws Exception 
+	 */
+	@RequestMapping(value="/goProjectDetail")
+	public ModelAndView goPrjectDetail() throws Exception{
+		ModelAndView mv = this.getModelAndView();
+		PageData pd = new PageData();
+		pd=this.getPageData();
+		mv.addObject("pd",pd);
+		mv.setViewName("sphz/project/project_detail");
+		return mv;
+	}
+	
+	/**
+	 * 去项目统计汇总页面
+	 * @return
+	 * @throws Exception 
+	 */
+	@RequestMapping(value="/goProjectStatistics")
+	public ModelAndView goProjectStatistics() throws Exception{
+		ModelAndView mv = this.getModelAndView();
+		PageData pd = new PageData();
+		try{
+			pd=this.getPageData();
+			String xmwym=pd.getString("XMWYM");
+			
+			List<Map<String, Object>>subArray=new ArrayList<Map<String,Object>>();
+			Map<String, Object> baseMap=new HashMap<String, Object>();//项目基本信息
+			baseMap.put("XMMC","&#12288;");
+			baseMap.put("XMWZ","&#12288;");
+			baseMap.put("JSDW","&#12288;");
+			baseMap.put("YDXZ","&#12288;");
+		
+			Map<String,Object>tempTjMap=new HashMap<String,Object>();
+			Map<String,Object>tempJsMap=new HashMap<String,Object>();
+			String[]keyArray={"用地面积","容积率","建筑密度","绿地率","停车位"};
+			String[]keyMapArray={"YDMJ","RJL","JZMD","LDL","TCW"};//需要计算
+			List<String>ydmjList=new ArrayList<String>();
+			List<String>jzmjList=new ArrayList<String>();
+			List<String>rjlList=new ArrayList<String>();
+			List<String>jzmdList=new ArrayList<String>();
+			List<String>ldlList=new ArrayList<String>();
+			List<String>tcwList=new ArrayList<String>();
+			Double totalYdmj=0d;
+			Double totalJzdj=0d;
+			Double totalJzmj=0d;
+			Double totalRjl=0d;
+			Double totalJzmd=0d;
+			Double totalLdl=0d;
+			Double totalTcw=0d;
+			//mongoClient = MongoDBUtil.initMongo();
+			//1、根据项目唯一码获取条件选址中的基本信息，以最新的一条为基准
+			List<Map<String, Object>> fwTjList=new ArrayList<Map<String,Object>>();
+			FindIterable<Document> tjDs = mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("fawen")
+					.find(new Document("XMWYM", xmwym).append("FWLXID", "选址、条件")).sort(Sorts.descending("FWRQ"));
+			fwTjList = MongoDBUtil.documents2MapList(tjDs);
+			
+			if(null!=fwTjList&&fwTjList.size()>0){
+				//1、获取项目基本信息
+				Map<String, Object> fwTj=fwTjList.get(0);
+				baseMap.put("XMMC",MongoDBUtil.convertObject2String(fwTj.get("XMMC"))+"&#12288;");//建设单位
+				baseMap.put("XMWZ",MongoDBUtil.convertObject2String(fwTj.get("XMWZ"))+"&#12288;");//项目位置
+				baseMap.put("JSDW",MongoDBUtil.convertObject2String(fwTj.get("JSDW"))+"&#12288;");//建设单位
+				baseMap.put("YDXZ",MongoDBUtil.convertObject2String(fwTj.get("YDXZ"))+"&#12288;");//规划用地性质
+				tempTjMap.put("YDMJ", MongoDBUtil.convertObject2String(fwTj.get("YDMJ")));
+				tempTjMap.put("RJL", MongoDBUtil.convertObject2String(fwTj.get("RJL")));
+				tempTjMap.put("JZMD", MongoDBUtil.convertObject2String(fwTj.get("JZMD")));
+				tempTjMap.put("LDL", MongoDBUtil.convertObject2String(fwTj.get("LDL")));
+				tempTjMap.put("TCW", MongoDBUtil.convertObject2String(fwTj.get("TCW")));
+			}
+			//2、获取项目统计信息，判断是否有分期项目，如果有分期项目，则统计分期项目的总和，如果没有分期，则查询该项目自身发文信息，以建证最新的为准
+			List<Map<String, Object>> subProjList=new ArrayList<Map<String,Object>>();
+			FindIterable<Document> subProjDs = mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("xiangmu")
+					.find(new Document("SSXMWYM", xmwym));
+			subProjList = MongoDBUtil.documents2MapList(subProjDs);
+			
+			if(null!=subProjList&&subProjList.size()>0){//包含分期
+				for(int i=0;i<subProjList.size();i++){//获取每一期项目建字建设情况,以最新的一条建字文件为准
+					Map<String, Object>proj=subProjList.get(i);
+					
+					Map<String,Object> subMap=new HashMap<String,Object>();
+					subMap.put("XMMC", MongoDBUtil.convertObject2String(proj.get("XMMC")));
+					FindIterable<Document> doc  = mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("fawen")
+							.find(new BasicDBObject("FWLXID",  Pattern.compile("^.*"+"建设许可"+".*$", Pattern.CASE_INSENSITIVE)).append("XMWYM",MongoDBUtil.convertObject2String(proj.get("XMWYM")))).sort(Sorts.descending("FWRQ"));//查询大项目相关发文
+					List<Map<String, Object>> fwJzList=MongoDBUtil.documents2MapList(doc);
+					if(null!=fwJzList&&fwJzList.size()>0){
+						Map<String,Object>fwJz= fwJzList.get(0);
+						String ydmj=MongoDBUtil.convertObject2String(fwJz.get("YDMJ"));
+						String jzmj=MongoDBUtil.convertObject2String(fwJz.get("ZJZMJ"));
+						String rjl=MongoDBUtil.convertObject2String(fwJz.get("RJL"));
+						String jzmd=MongoDBUtil.convertObject2String(fwJz.get("JZMD"));
+						String ldl=MongoDBUtil.convertObject2String(fwJz.get("LDL"));
+						String tcw=MongoDBUtil.convertObject2String(fwJz.get("TCW"));
+						subMap.put("YDMJ",ydmj);
+						subMap.put("JZMJ",jzmj);
+						subMap.put("RJL",rjl);
+						subMap.put("JZMD",jzmd);
+						subMap.put("LDL",ldl);
+						subMap.put("TCW",tcw);
+						ydmjList.add(ydmj);
+						jzmjList.add(jzmj);
+						rjlList.add(rjl);
+						jzmdList.add(jzmd);
+						ldlList.add(ldl);
+						tcwList.add(tcw);
+					}
+					subArray.add(subMap);
+				}
+				if(null!=ydmjList&&ydmjList.size()>0){
+					for(int i=0;i<ydmjList.size();i++){
+						String ydmj=ydmjList.get(i);
+						String jzmj=jzmjList.get(i);
+						String rjl=rjlList.get(i);
+						String jzmd=jzmdList.get(i);
+						String ldl=ldlList.get(i);
+						String tcw=tcwList.get(i);
+						if(!ydmj.equals("")&&ydmj.indexOf("㎡")>-1){
+							totalYdmj+=Double.parseDouble(ydmj.replace("㎡", ""));
+						}
+						if(!jzmj.equals("")&&jzmj.indexOf("㎡")>-1){
+							totalJzmj+=Double.parseDouble(jzmj.replace("㎡", ""));
+						}
+						if(!jzmd.equals("")&&jzmd.indexOf("%")>-1&&!ydmj.equals("")&&ydmj.indexOf("㎡")>-1){
+							totalJzdj+=Double.parseDouble(jzmd.replace("%", ""))*Double.parseDouble(ydmj.replace("㎡", ""));
+						}
+						if(!ldl.equals("")&&ldl.indexOf("%")>-1&&!ydmj.equals("")&&ydmj.indexOf("㎡")>-1){
+							totalLdl+=Double.parseDouble(ldl.replace("%", ""))*Double.parseDouble(ydmj.replace("㎡", ""));
+						}
+						if(!tcw.equals("")){
+							totalTcw+=Double.parseDouble(tcw);
+						}
+					}
+					
+					//nt.setjava
+					if(totalYdmj>0){
+						totalRjl=totalJzmj/totalYdmj;
+						totalJzmd=totalJzdj/totalYdmj;
+						totalLdl=totalLdl/totalYdmj;
+					}
+				}
+				NumberFormat nt=NumberFormat.getNumberInstance();
+				nt.setMaximumFractionDigits(2);
+				nt.setRoundingMode(RoundingMode.UP);
+				tempJsMap.put("YDMJ", totalYdmj+"㎡");
+				tempJsMap.put("RJL", nt.format(totalRjl));
+				tempJsMap.put("JZMD", String.format("%10.2f%%", totalJzmd));
+				tempJsMap.put("LDL", String.format("%10.2f%%", totalLdl));
+				tempJsMap.put("TCW", totalTcw);
+				/*baseMap.put("YDMJ", totalYdmj+"㎡"+"&#12288;");
+				baseMap.put("JZMJ",totalYdmj+"㎡"+"&#12288;");
+				baseMap.put("RJL",String.format("%10.2f%%", totalRjl)+"&#12288;");
+				baseMap.put("JZMD",String.format("%10.2f%%", totalJzmd)+"&#12288;");*/
+				
+				
+				
+			}else{//不包含分期
+				FindIterable<Document> doc  = mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("fawen")
+						.find(new BasicDBObject("FWLXID",  Pattern.compile("^.*"+"建设许可"+".*$", Pattern.CASE_INSENSITIVE)).append("XMWYM",xmwym)).sort(Sorts.descending("FWRQ"));//查询大项目相关发文
+				List<Map<String, Object>> fwJzList=MongoDBUtil.documents2MapList(doc);
+				if(null!=fwJzList&&fwJzList.size()>0){
+					Map<String,Object>fwJz= fwJzList.get(0);
+					String ydmj=MongoDBUtil.convertObject2String(fwJz.get("YDMJ"));
+					String jzmj=MongoDBUtil.convertObject2String(fwJz.get("ZJZMJ"));
+					String rjl=MongoDBUtil.convertObject2String(fwJz.get("RJL"));
+					String jzmd=MongoDBUtil.convertObject2String(fwJz.get("JZMD"));
+					String ldl=MongoDBUtil.convertObject2String(fwJz.get("LDL"));
+					String tcw=MongoDBUtil.convertObject2String(fwJz.get("TCW"));
+					tempJsMap.put("YDMJ", ydmj);
+					tempJsMap.put("RJL", rjl);
+					tempJsMap.put("JZMD", jzmd);
+					tempJsMap.put("LDL", ldl);
+					tempJsMap.put("TCW", tcw);
+				}
+			}
+			
+			List<Map<String,Object>> contArray=new ArrayList<Map<String,Object>>();
+			for(int i=0;i<keyMapArray.length;i++){
+				Map<String, Object> contMap=new HashMap<String, Object>();//项目指标信息
+				contMap.put("ZB",keyArray[i]);//指标
+				contMap.put("TJ",tempTjMap.get(keyMapArray[i]));//条件
+				contMap.put("JS",tempJsMap.get(keyMapArray[i]));//建设
+				contArray.add(contMap);
+			}
+			pd.put("contArray",contArray);
+			pd.put("baseMap", baseMap);
+			pd.put("subArray", subArray);
+			
+		} catch(Exception e){
+			logger.error(e.toString(), e);
+		}
+		
+		
+		mv.addObject("pd",pd);
+		mv.setViewName("sphz/project/project_statistics");
+		return mv;
+	}
+	
+	
+	
+	/**打开上传EXCEL页面
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value="/goUploadExcel")
+	public ModelAndView goUploadExcel()throws Exception{
+		ModelAndView mv = this.getModelAndView();
+		mv.setViewName("sphz/project/file_upload");
+		return mv;
+	}
+	/**
+	 * 获取发文列表
+	 * @return
+	 * @throws Exception 
+	 */
+	@RequestMapping(value="/list")
+	@ResponseBody
+	public Object list() throws Exception{
+		
+		Map<String,Object> map = new HashMap<String,Object>();
+		String errInfo = "success"; 
+		PageData pd = new PageData();
+		List<Map<String, Object>> xiangmuList=new ArrayList<Map<String,Object>>();
+		try{
+			pd = this.getPageData();
+			String xmwym=pd.getString("XMWYM");
+			String ssxmwym=pd.getString("SSXMWYM");
+			String keyword=pd.getString("keyword");
+			Integer sEcho=Integer.parseInt(pd.getString("sEcho"));
+			Integer iDisplayStart =Integer.parseInt(pd.getString("iDisplayStart"));
+			Integer iDisplayLength =Integer.parseInt(pd.getString("iDisplayLength"));
+			mongoClient = MongoDBUtil.initMongo();
+			BasicDBObject basicDBObject = new BasicDBObject();
+			BasicDBList endList = new BasicDBList();
+			BasicDBObject con = new BasicDBObject();
+		
+			//1、页面初始化时，传过来的项目唯一码和所属项目唯一码为null
+			//2、点击地图项目地块时（或者使用多边形查询项目为单个时），选中的项目单一，传过来的项目唯一码和所属项目唯一码不包含逗号，根据所属项目唯一码判断项目是否为（字符串null）大地块项目，如果是大地块，则根据该项目唯一码进行查询，若所属项目唯一码不为null，则根据所属项目唯一码查询大项目，并记录该小项目的项目唯一码，供点开项目查询分期情况高亮显示该分期项目
+			//3、使用画多边形查询项目时，查询结果为多个，前端返回的项目唯一码为(唯一码1，唯一码2，唯一码3，.。。,唯一码n)形式，返回的所属项目唯一码为（所属唯一码1，所属唯一码2，所属唯一码3，.。。,所属唯一码n）形式，这时解析传过来的字符串，按第2步处理每一个项目，并将项目通过or的方式进行查询。
+			if(null==ssxmwym&&null==xmwym){//页面初始化时
+				con.put("SSXMWYM", "");
+			}else if(xmwym.indexOf(",")>-1){
+				String[] ssxmwymArray = ssxmwym.split(",");
+				String[] xmwymArray = xmwym.split(",");
+				BasicDBList condXmwymList = new BasicDBList();
+				for(int i=0;i<xmwymArray.length;i++){
+					if(ssxmwymArray[i].equals("")||ssxmwymArray[i].equals("null")){
+						condXmwymList.add(new BasicDBObject("XMWYM",xmwymArray[i]));
+					}else{
+						condXmwymList.add(new BasicDBObject("XMWYM",ssxmwymArray[i]));
+					}
+				}
+				con.put("$or", condXmwymList);
+			}else{
+				if(ssxmwym.equals("")||ssxmwym.equals("null")){//点击地图项目为条件地块时
+					con.put("XMWYM", xmwym);
+				}else{//分期地块
+					con.put("XMWYM", ssxmwym);
+				}
+			}
+			endList.add(con);
+
+			BasicDBList condList = new BasicDBList();
+			BasicDBObject autoEnd = new BasicDBObject();
+			if(null!=keyword&&!"".equals(keyword)){
+				condList.add(new BasicDBObject("XMMC",  Pattern.compile("^.*"+keyword+".*$", Pattern.CASE_INSENSITIVE)));
+				condList.add(new BasicDBObject("XMBH",  Pattern.compile("^.*"+keyword+".*$", Pattern.CASE_INSENSITIVE)));
+				condList.add(new BasicDBObject("XMWZ",  Pattern.compile("^.*"+keyword+".*$", Pattern.CASE_INSENSITIVE)));
+				autoEnd.put("$or",condList);
+				endList.add(autoEnd);
+			}
+			//todo:根据项目名称搜索项目，如果项目名称为小地块名称，搜索出的是小地块，则需要根据小地块找到大地块，列表展示大地块
+			
+			basicDBObject.put("$and",endList);
+		
+			FindIterable<Document> documents  = mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("xiangmu")
+					.find(basicDBObject).sort(Sorts.ascending("XMWYM")).skip(iDisplayStart).limit(iDisplayLength);
+			long count = mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("xiangmu")
+			.count(basicDBObject);
+			
+			Integer intValue = new Long(count).intValue();
+			//int initEcho=sEcho+1;
+			xiangmuList = MongoDBUtil.documents2MapList(documents);
+			map.put("iDisplayStart",iDisplayStart);
+			map.put("iDisplayLength",iDisplayLength);
+			map.put("sEcho", sEcho);
+			map.put("iTotalRecords", intValue);
+			map.put("iTotalDisplayRecords", intValue);//显示的条数 
+			
+		} catch(Exception e){
+			errInfo=e.toString();
+			logger.error(e.toString(), e);
+		}
+		map.put("xiangmuList", xiangmuList);
+		map.put("result", errInfo);		
+		return AppUtil.returnObject(new PageData(), map);
+	}
+	
+	/**
+	 * 根据项目名称搜索项目尚未完成
+	 * @return
+	 * @throws Exception 
+	 */
+	@RequestMapping(value="/listByXmmc")
+	@ResponseBody
+	public Object listByXmmc() throws Exception{
+		
+		Map<String,Object> map = new HashMap<String,Object>();
+		String errInfo = "success"; 
+		PageData pd = new PageData();
+		List<Map<String, Object>> xiangmuList=new ArrayList<Map<String,Object>>();
+		List<Map<String, Object>> selectXiangmuList=new ArrayList<Map<String,Object>>();
+		try{
+			pd = this.getPageData();
+			String keyword=pd.getString("keyword");
+			Integer sEcho=Integer.parseInt(pd.getString("sEcho"));
+			Integer iDisplayStart =Integer.parseInt(pd.getString("iDisplayStart"));
+			Integer iDisplayLength =Integer.parseInt(pd.getString("iDisplayLength"));
+			mongoClient = MongoDBUtil.initMongo();
+			BasicDBObject basicDBObject = new BasicDBObject();
+			BasicDBList endList = new BasicDBList();
+		
+			BasicDBList condList = new BasicDBList();
+			BasicDBObject autoEnd = new BasicDBObject();
+			if(null!=keyword&&!"".equals(keyword)){
+				condList.add(new BasicDBObject("XMMC",  Pattern.compile("^.*"+keyword+".*$", Pattern.CASE_INSENSITIVE)));
+				autoEnd.put("$or",condList);
+				endList.add(autoEnd);
+			}
+			//todo:根据项目名称搜索项目，如果项目名称为小地块名称，搜索出的是小地块，则需要根据小地块找到大地块，列表展示大地块
+			
+			basicDBObject.put("$and",endList);
+			
+			FindIterable<Document> documents  = mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("xiangmu")
+					.find(basicDBObject).sort(Sorts.ascending("XMWYM")).skip(iDisplayStart).limit(iDisplayLength);
+			long count = mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("xiangmu")
+			.count(basicDBObject);
+			
+			Integer intValue = new Long(count).intValue();
+			//int initEcho=sEcho+1;
+			selectXiangmuList = MongoDBUtil.documents2MapList(documents);
+			map.put("iDisplayStart",iDisplayStart);
+			map.put("iDisplayLength",iDisplayLength);
+			map.put("sEcho", sEcho);
+			map.put("iTotalRecords", intValue);
+			map.put("iTotalDisplayRecords", intValue);//显示的条数 
+			
+		} catch(Exception e){
+			errInfo=e.toString();
+			logger.error(e.toString(), e);
+		}
+		map.put("xiangmuList", xiangmuList);
+		map.put("result", errInfo);		
+		//close();//返回结果
+		return AppUtil.returnObject(new PageData(), map);
+	}
+	
+	/**
+	 * 根据项目唯一码获取项目
+	 * @return
+	 * @throws Exception 
+	 */
+	@RequestMapping(value="/getXiangmuByXmwym")
+	@ResponseBody
+	public Object getXiangmuByXmwym() throws Exception{
+		
+		Map<String,Object> map = new HashMap<String,Object>();
+		String errInfo = "success"; 
+		PageData pd = new PageData();
+		List<Map<String, Object>> xiangmuList=new ArrayList<Map<String,Object>>();
+		try{
+			pd = this.getPageData();
+			mongoClient = MongoDBUtil.initMongo();
+			Document document = new Document();
+			document.append("XMWYM", pd.get("XMWYM"));
+			FindIterable<Document> documents  = mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("xiangmu")
+					.find(document).sort(Sorts.ascending("XMWYM")).projection(new Document("_id",0).append("XIANGMU_ID", 0));
+			
+			xiangmuList = MongoDBUtil.documents2MapList(documents);
+			
+		} catch(Exception e){
+			errInfo=e.toString();
+			logger.error(e.toString(), e);
+		}
+		
+		map.put("xiangmuList", xiangmuList);
+		map.put("result", errInfo);				//返回结果
+		//close();
+		return AppUtil.returnObject(new PageData(), map);
+	}
+	
+	/**
+	 * 根据父项目唯一码获取分期项目列表
+	 * @return
+	 * @throws Exception 
+	 */
+	@RequestMapping(value="/getSubProjectByXMWYM")
+	@ResponseBody
+	public Object getSubProjectByXMWYM() throws Exception{
+		
+		Map<String,Object> map = new HashMap<String,Object>();
+		String errInfo = "success"; 
+		PageData pd = new PageData();
+		List<Map<String, Object>> subProjectList=new ArrayList<Map<String,Object>>();
+		try{
+			pd = this.getPageData();
+			String subxmwym=pd.getString("subxmwym");
+			mongoClient = MongoDBUtil.initMongo();
+			Document document = new Document();
+			document.append("SSXMWYM", pd.get("XMWYM"));
+			FindIterable<Document> documents  = mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("xiangmu")
+					.find(document).projection(new Document("_id",0).append("XIANGMU_ID", 0));
+			
+			subProjectList = MongoDBUtil.documents2MapList(documents);
+			map.put("subxmwym",subxmwym);
+
+		} catch(Exception e){
+			errInfo=e.toString();
+			logger.error(e.toString(), e);
+		}
+		
+		map.put("subProjectList", subProjectList);
+		map.put("result", errInfo);				//返回结果
+		return AppUtil.returnObject(new PageData(), map);
+	}
+	
+	/**
+	 * 获取项目详情
+	 * @return
+	 * @throws Exception 
+	 */
+	@RequestMapping(value="/getProjectDetails1")
+	@ResponseBody
+	public Object getProjectDetails1() throws Exception{
+		
+		Map<String,Object> map = new HashMap<String,Object>();
+		String errInfo = "success"; 
+		PageData pd = new PageData();
+		Map<String, Object> returnMap=new HashMap<String,Object>();
+		//List<Map<String, Object>> xiangmuList=new ArrayList<Map<String,Object>>();
+		try{
+			pd = this.getPageData();
+		
+			Map<String, Object> stagedataMap=new HashMap<String,Object>();
+			List<Map<String, Object>> subXiangmuList=new ArrayList<Map<String,Object>>();
+			List<Map<String, Object>> xiangmuList=new ArrayList<Map<String,Object>>();
+			
+			List<Map<String, Object>> fawenList=new ArrayList<Map<String,Object>>();
+			List<Map<String, Object>> baseDataList=new ArrayList<Map<String,Object>>();
+			Map<String, Object> baseMap=new HashMap<String,Object>();
+			List<Map<String, Object>> documentDataList=new ArrayList<Map<String,Object>>();
+			List<Map<String, Object>> childFilesList=new ArrayList<Map<String,Object>>();
+			Map<String, Object> baseMap1=new HashMap<String,Object>();
+			List<Map<String, Object>> fwJzList=new ArrayList<Map<String,Object>>();
+			String[]keyArray={"建设单位","建设位置","规划性质","用地面积","建筑面积","总容积率","建筑密度"};
+			String[]keyMapArray={"JSDW","JSWZ","YDXZ","YDMJ","JZMJ","RJL","JZMD"};//需要计算
+			String xmwym=pd.getString("XMWYM").trim();
+			String ssxmwym=pd.getString("SSXMWYM").trim();
+			mongoClient = MongoDBUtil.initMongo();
+			//该项目是大项目
+			if(null==ssxmwym||ssxmwym.trim().equals("")){
+				
+				Document d1 = new Document();
+				d1.append("XMWYM", xmwym);
+				d1.append("FWLXID", "选址、条件");
+				List<Map<String, Object>> fwTjList=new ArrayList<Map<String,Object>>();
+				FindIterable<Document> ds1 = mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("fawen")
+						.find(d1).sort(Sorts.descending("FWRQ"));
+				fwTjList = MongoDBUtil.documents2MapList(ds1);
+				Map<String, Object> fwTj=new HashMap<String, Object>();
+				if(null!=fwTjList&&fwTjList.size()>0){
+					fwTj=fwTjList.get(0);
+					baseMap1.put("JSDW",MongoDBUtil.convertObject2String(fwTj.get("JSDW")));
+					baseMap1.put("XMWZ",MongoDBUtil.convertObject2String(fwTj.get("XMWZ")));
+					baseMap1.put("YDXZ",MongoDBUtil.convertObject2String(fwTj.get("YDXZ")));
+					baseMap1.put("YDXZ",MongoDBUtil.convertObject2String(fwTj.get("YDXZ")));
+					
+					for(int i=0;i<keyArray.length;i++){
+						Map<String, Object> f=new HashMap<String, Object>();
+						f.put("id", i);
+						f.put("name", keyArray[i]);
+						f.put("value", MongoDBUtil.convertObject2String(fwTj.get(keyMapArray[i])));
+						baseDataList.add(f);
+					}
+				}
+				
+				
+				Document document = new Document();
+				document.append("SSXMWYM", xmwym);
+				/*FindIterable<Document> documents  = mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("xiangmu")
+						.find(document);
+				xiangmuList = MongoDBUtil.documents2MapList(documents);
+				pd.put("title",MongoDBUtil.convertObject2String(xiangmuList.get(0).get("XMMC")));*/
+				FindIterable<Document> documents  = mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("xiangmu")
+						.find(document);
+				xiangmuList = MongoDBUtil.documents2MapList(documents);
+				
+				
+				if(null!=xiangmuList&&xiangmuList.size()>0){
+					
+					returnMap.put("stageFlag",true);
+					stagedataMap.put("name", "已有分期");
+					for(int i=0;i<xiangmuList.size();i++){
+						Map<String, Object> proj=new HashMap<String,Object>();
+						proj.put("id",MongoDBUtil.convertObject2String(xiangmuList.get(i).get("XMWYM")));
+						proj.put("name",MongoDBUtil.convertObject2String(xiangmuList.get(i).get("XMMC")));
+						proj.put("url","");
+						subXiangmuList.add(proj);
+					}
+					stagedataMap.put("value",subXiangmuList );
+					returnMap.put("stageData",stagedataMap);
+				}else{
+					returnMap.put("stageFlag",false);
+					returnMap.put("stageData",null);
+				}
+				
+				if(null!=xiangmuList&&xiangmuList.size()>0){
+					double ydmj_d=0d;
+					double zjzmj_d=0d;
+					double rjl_d=0d;
+					double jzmd_d=0d;
+					
+					for(int i=0;i<xiangmuList.size();i++){
+						Map<String, Object> proj=new HashMap<String,Object>();
+						/*Document document1 = new Document();
+						document1.append("XMWYM", xmwym);*/
+						FindIterable<Document> d2  = mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("fawen")
+								.find(new Document("XMWYM",MongoDBUtil.convertObject2String(proj.get("XMWYM"))).append("FWLXID", "建设许可（建筑工程）")).sort(Sorts.descending("FWRQ"));
+						fwJzList = MongoDBUtil.documents2MapList(d2);
+						if(fwJzList!=null&&fwJzList.size()>0){
+							Map<String, Object> fwJz=fwJzList.get(0);
+							String ydmj=MongoDBUtil.convertObject2String(fwJz.get("YDMJ"));
+							String zjzmj=MongoDBUtil.convertObject2String(fwJz.get("ZJZMJ"));
+							String rjl=MongoDBUtil.convertObject2String(fwJz.get("RJL"));
+							String jzmd=MongoDBUtil.convertObject2String(fwJz.get("JZMD"));
+							//if(ydmj.)
+						}
+					}
+					
+				}else{
+					/*baseMap1.put("stageFlag",false);
+					baseMap1.put("stageData",null);*/
+				}
+				
+				Document document1 = new Document();
+				document1.append("XMWYM", xmwym);
+				FindIterable<Document> documents1  = mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("fawen")
+						.find(document1).sort(Sorts.descending("FWRQ"));
+				fawenList = MongoDBUtil.documents2MapList(documents1);
+				
+				//List<Map<String, Object>> fawenList=new ArrayList<Map<String,Object>>();
+				if(null!=fawenList&&fawenList.size()>0){
+					//List<Map<String, Object>> childAttachmentList=new ArrayList<Map<String,Object>>();
+					for(int i=0;i<fawenList.size();i++){
+						Map<String, Object> fawen=new HashMap<String,Object>();
+						Map<String, Object> fw=fawenList.get(i);
+						fawen.put("id",MongoDBUtil.convertObject2String(fw.get("DAHH")));
+						//fawen.put("type",MongoDBUtil.convertObject2String(fawen.get("FWLXID")));
+						fawen.put("stage","");
+						fawen.put("url","");
+						fawen.put("time",MongoDBUtil.convertObject2String(fw.get("FWRQ")));
+						fawen.put("name",MongoDBUtil.convertObject2String(fw.get("FWWH")));
+						String fwlxId=MongoDBUtil.convertObject2String(fw.get("FWLXID"));
+						if(fwlxId.indexOf("选址、条件")>-1){
+							fawen.put("type","TJXZ");
+							fawen.put("short","选");
+						}else if(fwlxId.indexOf("用地")>-1){
+							fawen.put("type","YDXK");
+							fawen.put("short","地");
+						}else if(fwlxId.indexOf("建设许可")>-1){
+							fawen.put("type","JSXK");
+							fawen.put("short","建");
+						}else if(fwlxId.indexOf("竣工")>-1){
+							fawen.put("type","JGXK");
+							fawen.put("short","核");
+						}else{
+							fawen.put("type","");
+							fawen.put("short","");
+						}
+						
+						String dahh=MongoDBUtil.convertObject2String(fw.get("DAHH"));
+						
+						
+						PageData pd1 = new PageData();
+						List<PageData> BAFilesList = new ArrayList<PageData>();
+						List<PageData> BSFilesList = new ArrayList<PageData>();
+						List<PageData> GFFilesList = new ArrayList<PageData>();
+						List<PageData> LZFilesList = new ArrayList<PageData>();
+						List<PageData> ZWFilesList = new ArrayList<PageData>();
+						List<PageData> ZXFilesList = new ArrayList<PageData>();
+							pd1.put("dahh",dahh);
+							//pd = this.getPageData();
+							//String dahh= pd.getString("dahh");
+							pd1.put("type", "BA");
+							BAFilesList = fileService.findByDahAndType(pd1);
+							pd1.put("type","BS");
+							BSFilesList = fileService.findByDahAndType(pd1);
+							pd1.put("type","GF");
+							GFFilesList = fileService.findByDahAndType(pd1);
+							pd1.put("type","LZ");
+							LZFilesList = fileService.findByDahAndType(pd1);
+							pd1.put("type","ZW");
+							ZWFilesList = fileService.findByDahAndType(pd1);
+							pd1.put("type","ZX");
+							ZXFilesList = fileService.findByDahAndType(pd1);
+						String[]nameArray={"BA-建设单位提报方案","BS-建设单位提报申请","GF-规划局发文","LZ-局内流转文件","ZW-其他政府文件","ZX-第三方咨询文件"};	
+						List<List<PageData>>filesList=new ArrayList<List<PageData>>();
+						filesList.add(BAFilesList);
+						filesList.add(BSFilesList);
+						filesList.add(GFFilesList);
+						filesList.add(LZFilesList);
+						filesList.add(ZWFilesList);
+						filesList.add(ZXFilesList);
+							
+						for(int j=0;j<6;j++){
+							Map<String, Object> fileMap=new HashMap<String,Object>();
+							fileMap.put("id",i);
+							fileMap.put("name",nameArray[i]);
+							fileMap.put("sub",filesList.get(i));
+							childFilesList.add(fileMap);
+						}
+						Map<String, Object>childAttachmentListOptions=new HashMap<String,Object>();
+						childAttachmentListOptions.put("data", childFilesList);
+						fawen.put("childAttachmentlistOptions", childAttachmentListOptions);
+						documentDataList.add(fawen);
+						
+					}
+				}//条字地字
+				
+				if(null!=xiangmuList&&xiangmuList.size()>0){
+					for(int i=0;i<xiangmuList.size();i++){
+						Map<String, Object> xiangmu=xiangmuList.get(i);
+						//Document document1 = new Document();
+						//document1.append("XMWYM", new Document("XMWYM", MongoDBUtil.convertObject2String(xiangmu.get("XMWYM"))));
+						FindIterable<Document> documents2  = mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("fawen")
+								.find( new Document("XMWYM", MongoDBUtil.convertObject2String(xiangmu.get("XMWYM")))).sort(Sorts.descending("FWRQ"));
+						fawenList = MongoDBUtil.documents2MapList(documents2);
+						
+						//List<Map<String, Object>> fawenList=new ArrayList<Map<String,Object>>();
+						if(null!=fawenList&&fawenList.size()>0){
+							//List<Map<String, Object>> childAttachmentList=new ArrayList<Map<String,Object>>();
+							for(int j=0;j<fawenList.size();j++){
+								Map<String, Object> fawen=new HashMap<String,Object>();
+								Map<String, Object> fw=fawenList.get(j);
+								fawen.put("id",MongoDBUtil.convertObject2String(fw.get("DAHH")));
+								//fawen.put("type",MongoDBUtil.convertObject2String(fawen.get("FWLXID")));
+								fawen.put("stage",MongoDBUtil.convertObject2String(fw.get("XMMC")));
+								fawen.put("url","");
+								fawen.put("time",MongoDBUtil.convertObject2String(fw.get("FWRQ")));
+								fawen.put("name",MongoDBUtil.convertObject2String(fw.get("FWWH")));
+								String fwlxId=MongoDBUtil.convertObject2String(fw.get("FWLXID"));
+								if(fwlxId.indexOf("选址、条件")>-1){
+									fawen.put("type","TJXZ");
+									fawen.put("short","选");
+								}else if(fwlxId.indexOf("用地")>-1){
+									fawen.put("type","YDXK");
+									fawen.put("short","地");
+								}else if(fwlxId.indexOf("建设许可")>-1){
+									fawen.put("type","JSXK");
+									fawen.put("short","建");
+								}else if(fwlxId.indexOf("竣工")>-1){
+									fawen.put("type","JGXK");
+									fawen.put("short","核");
+								}else{
+									fawen.put("type","");
+									fawen.put("short","");
+								}
+								
+								String dahh=MongoDBUtil.convertObject2String(fw.get("DAHH"));
+								
+								
+								PageData pd1 = new PageData();
+								List<PageData> BAFilesList = new ArrayList<PageData>();
+								List<PageData> BSFilesList = new ArrayList<PageData>();
+								List<PageData> GFFilesList = new ArrayList<PageData>();
+								List<PageData> LZFilesList = new ArrayList<PageData>();
+								List<PageData> ZWFilesList = new ArrayList<PageData>();
+								List<PageData> ZXFilesList = new ArrayList<PageData>();
+									pd1.put("dahh",dahh);
+									//pd = this.getPageData();
+									//String dahh= pd.getString("dahh");
+									pd1.put("type", "BA");
+									BAFilesList = fileService.findByDahAndType(pd1);
+									pd1.put("type","BS");
+									BSFilesList = fileService.findByDahAndType(pd1);
+									pd1.put("type","GF");
+									GFFilesList = fileService.findByDahAndType(pd1);
+									pd1.put("type","LZ");
+									LZFilesList = fileService.findByDahAndType(pd1);
+									pd1.put("type","ZW");
+									ZWFilesList = fileService.findByDahAndType(pd1);
+									pd1.put("type","ZX");
+									ZXFilesList = fileService.findByDahAndType(pd1);
+								String[]nameArray={"BA-建设单位提报方案","BS-建设单位提报申请","GF-规划局发文","LZ-局内流转文件","ZW-其他政府文件","ZX-第三方咨询文件"};	
+								List<List<PageData>>filesList=new ArrayList<List<PageData>>();
+								filesList.add(BAFilesList);
+								filesList.add(BSFilesList);
+								filesList.add(GFFilesList);
+								filesList.add(LZFilesList);
+								filesList.add(ZWFilesList);
+								filesList.add(ZXFilesList);
+									
+								for(int k=0;k<6;k++){
+									Map<String, Object> fileMap=new HashMap<String,Object>();
+									fileMap.put("id",k);
+									fileMap.put("name",nameArray[k]);
+									fileMap.put("sub",filesList.get(k));
+									childFilesList.add(fileMap);
+								}
+								Map<String, Object>childAttachmentListOptions=new HashMap<String,Object>();
+								childAttachmentListOptions.put("data", childFilesList);
+								fawen.put("childAttachmentlistOptions", childAttachmentListOptions);
+								documentDataList.add(fawen);
+								
+							}
+						}
+					}
+				}
+				returnMap.put("documentData",documentDataList);
+				
+				
+			}else{
+				
+				
+			}
+			//该项目是分期项目
+			returnMap.put("baseData", baseDataList);
+			
+		} catch(Exception e){
+			errInfo=e.toString();
+			logger.error(e.toString(), e);
+		}
+		map.put("returnMap", returnMap);
+		map.put("result", errInfo);		
+		return AppUtil.returnObject(new PageData(), map);
+	}
+	
+	
+	public List<Map<String, Object>> getBaseProjectDataByXmwym(String xmwym) throws Exception{
+		List<Map<String, Object>> baseDataList=new ArrayList<Map<String,Object>>();
+		Map<String, Object> baseMap=new HashMap<String, Object>();
+		baseMap.put("JSDW","&#12288;");
+		baseMap.put("JSWZ","&#12288;");
+		baseMap.put("YDXZ","&#12288;");
+		baseMap.put("YDMJ","&#12288;");
+		baseMap.put("JZMJ","&#12288;");
+		baseMap.put("RJL","&#12288;");
+		baseMap.put("JZMD","&#12288;");
+		String[]keyArray={"建设单位","建设位置","规划性质","用地面积","建筑面积","总容积率","建筑密度"};
+		String[]keyMapArray={"JSDW","JSWZ","YDXZ","YDMJ","JZMJ","RJL","JZMD"};//需要计算
+		List<String>ydmjList=new ArrayList<String>();
+		List<String>jzmjList=new ArrayList<String>();
+		List<String>rjlList=new ArrayList<String>();
+		List<String>jzmdList=new ArrayList<String>();
+		Double totalYdmj=0d;
+		Double totalJzdj=0d;
+		Double totalJzmj=0d;
+		Double totalRjl=0d;
+		Double totalJzmd=0d;
+		//mongoClient = MongoDBUtil.initMongo();
+		//1、根据项目唯一码获取条件选址中的基本信息，以最新的一条为基准
+			List<Map<String, Object>> fwTjList=new ArrayList<Map<String,Object>>();
+			FindIterable<Document> tjDs = mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("fawen")
+					.find(new Document("XMWYM", xmwym).append("FWLXID", "选址、条件")).sort(Sorts.descending("FWRQ"));
+			fwTjList = MongoDBUtil.documents2MapList(tjDs);
+			
+			if(null!=fwTjList&&fwTjList.size()>0){
+				//1、获取项目基本信息
+				Map<String, Object> fwTj=fwTjList.get(0);
+				baseMap.put("JSDW",MongoDBUtil.convertObject2String(fwTj.get("JSDW"))+"&#12288;");//建设单位
+				baseMap.put("JSWZ",MongoDBUtil.convertObject2String(fwTj.get("XMWZ"))+"&#12288;");//项目位置
+				baseMap.put("YDXZ",MongoDBUtil.convertObject2String(fwTj.get("YDXZ"))+"&#12288;");//规划用地性质
+			}
+			//2、获取项目统计信息，判断是否有分期项目，如果有分期项目，则统计分期项目的总和，如果没有分期，则查询该项目自身发文信息，以建证最新的为准
+			List<Map<String, Object>> subProjList=new ArrayList<Map<String,Object>>();
+			FindIterable<Document> subProjDs = mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("xiangmu")
+					.find(new Document("SSXMWYM", xmwym));
+			subProjList = MongoDBUtil.documents2MapList(subProjDs);
+			
+			if(null!=subProjList&&subProjList.size()>0){//包含分期
+				for(int i=0;i<subProjList.size();i++){//获取每一期项目建字建设情况,以最新的一条建字文件为准
+					FindIterable<Document> doc  = mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("fawen")
+							.find(new BasicDBObject("FWLXID",  Pattern.compile("^.*"+"建设许可"+".*$", Pattern.CASE_INSENSITIVE)).append("XMWYM",MongoDBUtil.convertObject2String(subProjList.get(i).get("XMWYM")))).sort(Sorts.descending("FWRQ"));//查询大项目相关发文
+					List<Map<String, Object>> fwJzList=MongoDBUtil.documents2MapList(doc);
+					if(null!=fwJzList&&fwJzList.size()>0){
+						Map<String,Object>fwJz= fwJzList.get(0);
+						String ydmj=MongoDBUtil.convertObject2String(fwJz.get("YDMJ"));
+						String jzmj=MongoDBUtil.convertObject2String(fwJz.get("ZJZMJ"));
+						String rjl=MongoDBUtil.convertObject2String(fwJz.get("RJL"));
+						String jzmd=MongoDBUtil.convertObject2String(fwJz.get("JZMD"));
+						ydmjList.add(ydmj);
+						jzmjList.add(jzmj);
+						rjlList.add(rjl);
+						jzmdList.add(jzmd);
+					}
+				}
+			}else{//不包含分期
+				FindIterable<Document> doc  = mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("fawen")
+						.find(new BasicDBObject("FWLXID",  Pattern.compile("^.*"+"建设许可"+".*$", Pattern.CASE_INSENSITIVE)).append("XMWYM",xmwym)).sort(Sorts.descending("FWRQ"));//查询大项目相关发文
+				List<Map<String, Object>> fwJzList=MongoDBUtil.documents2MapList(doc);
+				if(null!=fwJzList&&fwJzList.size()>0){
+					Map<String,Object>fwJz= fwJzList.get(0);
+					String ydmj=MongoDBUtil.convertObject2String(fwJz.get("YDMJ"));
+					String jzmj=MongoDBUtil.convertObject2String(fwJz.get("ZJZMJ"));
+					String rjl=MongoDBUtil.convertObject2String(fwJz.get("RJL"));
+					String jzmd=MongoDBUtil.convertObject2String(fwJz.get("JZMD"));
+					ydmjList.add(ydmj);
+					jzmjList.add(jzmj);
+					rjlList.add(rjl);
+					jzmdList.add(jzmd);
+				}
+			}
+			
+			if(null!=ydmjList&&ydmjList.size()>0){
+				for(int i=0;i<ydmjList.size();i++){
+					String ydmj=ydmjList.get(i);
+					String jzmj=jzmjList.get(i);
+					String rjl=rjlList.get(i);
+					String jzmd=jzmdList.get(i);
+					if(!ydmj.equals("")&&ydmj.indexOf("㎡")>-1){
+						totalYdmj+=Double.parseDouble(ydmj.replace("㎡", ""));
+					}
+					if(!jzmj.equals("")&&jzmj.indexOf("㎡")>-1){
+						totalJzmj+=Double.parseDouble(jzmj.replace("㎡", ""));
+					}
+					if(!jzmd.equals("")&&jzmd.indexOf("%")>-1&&!ydmj.equals("")&&ydmj.indexOf("㎡")>-1){
+						totalJzdj+=Double.parseDouble(jzmd.replace("%", ""))*Double.parseDouble(ydmj.replace("㎡", ""));
+					}
+				}
+				NumberFormat nt=NumberFormat.getPercentInstance();
+				//nt.setjava
+				if(totalYdmj>0){
+					totalRjl=totalJzmj/totalYdmj;
+					totalJzmd=totalJzdj/totalYdmj;
+				}
+				
+			}
+			NumberFormat nt=NumberFormat.getNumberInstance();
+			nt.setMaximumFractionDigits(2);
+			nt.setRoundingMode(RoundingMode.UP);
+			baseMap.put("YDMJ", totalYdmj+"㎡"+"&#12288;");
+			baseMap.put("JZMJ",totalJzmj+"㎡"+"&#12288;");
+			baseMap.put("RJL",nt.format(totalRjl)+"&#12288;");
+			baseMap.put("JZMD",String.format("%10.2f%%", totalJzmd)+"&#12288;");
+			for(int i=0;i<keyArray.length;i++){
+				Map<String,Object>map=new HashMap<String,Object>();
+				map.put("id", i);
+				map.put("name",keyArray[i]);
+				map.put("value",baseMap.get(keyMapArray[i]));
+				baseDataList.add(map);
+			}
+			
+		
+		return baseDataList;
+	}
+	
+	
+	public List<Map<String, Object>> getBaseProjectDataBySubXmwym(String xmwym) throws Exception{
+		List<Map<String, Object>> baseDataList=new ArrayList<Map<String,Object>>();
+		Map<String, Object> baseMap=new HashMap<String, Object>();
+		String[]keyArray={"建设单位","建设位置","规划性质","用地面积","建筑面积","总容积率","建筑密度"};
+		String[]keyMapArray={"JSDW","JSWZ","YDXZ","YDMJ","JZMJ","RJL","JZMD"};//需要计算
+		baseMap.put("JSDW","&#12288;");
+		baseMap.put("JSWZ","&#12288;");
+		baseMap.put("YDXZ","&#12288;");
+		baseMap.put("YDMJ","&#12288;");
+		baseMap.put("JZMJ","&#12288;");
+		baseMap.put("RJL","&#12288;");
+		baseMap.put("JZMD","&#12288;");
+		//mongoClient = MongoDBUtil.initMongo();
+		//1、根据项目唯一码获取条件选址中的基本信息，以最新的一条为基准
+			
+		FindIterable<Document> doc  = mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("fawen")
+				.find(new BasicDBObject("FWLXID",  Pattern.compile("^.*"+"建设许可"+".*$", Pattern.CASE_INSENSITIVE)).append("XMWYM",xmwym)).sort(Sorts.descending("FWRQ"));//查询大项目相关发文
+		List<Map<String, Object>> fwJzList=MongoDBUtil.documents2MapList(doc);
+		if(null!=fwJzList&&fwJzList.size()>0){
+			Map<String,Object>fwJz= fwJzList.get(0);
+			baseMap.put("JSDW",MongoDBUtil.convertObject2String(fwJz.get("JSDW"))+"&#12288;");//建设单位
+			baseMap.put("JSWZ",MongoDBUtil.convertObject2String(fwJz.get("XMWZ"))+"&#12288;");//项目位置
+			baseMap.put("YDXZ",MongoDBUtil.convertObject2String(fwJz.get("YDXZ"))+"&#12288;");//规划用地性质
+			
+			baseMap.put("YDMJ",MongoDBUtil.convertObject2String(fwJz.get("YDMJ"))+"&#12288;");
+			baseMap.put("JZMJ",MongoDBUtil.convertObject2String(fwJz.get("ZJZMJ"))+"&#12288;");
+			baseMap.put("RJL",MongoDBUtil.convertObject2String(fwJz.get("RJL"))+"&#12288;");
+			baseMap.put("JZMD",MongoDBUtil.convertObject2String(fwJz.get("JZMD"))+"&#12288;");
+		}
+			
+		for(int i=0;i<keyArray.length;i++){
+			Map<String,Object>map=new HashMap<String,Object>();
+			map.put("id", i);
+			map.put("name",keyArray[i]);
+			map.put("value",baseMap.get(keyMapArray[i]));
+			baseDataList.add(map);
+		}
+		
+		return baseDataList;
+	}
+	
+	//根据项目唯一码获取大项目、分期项目所有文件
+	public List<Map<String, Object>> getFilesByXmwym(String xmwym) throws Exception{//根据项目唯一码获取大项目、分期项目所有文件
+		List<Map<String, Object>> childFilesList=new ArrayList<Map<String,Object>>();
+		String[]nameArray={"BA-建设单位提报方案","BS-建设单位提报申请","GF-规划局发文","LZ-局内流转文件","ZW-其他政府文件","ZX-第三方咨询文件"};	
+		List<List<PageData>>filesList=new ArrayList<List<PageData>>();
+		List<Map<String, Object>> fwList=new ArrayList<Map<String,Object>>();
+		//mongoClient = MongoDBUtil.initMongo();
+		FindIterable<Document> doc  = mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("fawen")
+				.find(new Document("XMWYM", xmwym)).sort(Sorts.descending("FWRQ"));//查询大项目相关发文
+		fwList=MongoDBUtil.documents2MapList(doc);
+		List<PageData> bAFilesList = new ArrayList<PageData>();
+		List<PageData> bSFilesList = new ArrayList<PageData>();
+		List<PageData> gFFilesList = new ArrayList<PageData>();
+		List<PageData> lZFilesList = new ArrayList<PageData>();
+		List<PageData> zWFilesList = new ArrayList<PageData>();
+		List<PageData> zXFilesList = new ArrayList<PageData>();
+		if(null!=fwList&&fwList.size()>0){
+			for(int i=0;i<fwList.size();i++){
+				Map<String,Object> fw=fwList.get(i);//根据发文获取所有附件
+				String dahh=MongoDBUtil.convertObject2String(fw.get("DAHH"));
+				PageData pd = new PageData();
+				pd.put("dahh",dahh);
+				pd.put("type", "BA");
+				bAFilesList.addAll(fileService.findByDahAndType(pd));
+				pd.put("type","BS");
+				bSFilesList.addAll(fileService.findByDahAndType(pd));
+				pd.put("type","GF");
+				gFFilesList.addAll(fileService.findByDahAndType(pd));
+				pd.put("type","LZ");
+				lZFilesList.addAll(fileService.findByDahAndType(pd));
+				pd.put("type","ZW");
+				zWFilesList.addAll(fileService.findByDahAndType(pd));
+				pd.put("type","ZX");
+				zXFilesList.addAll(fileService.findByDahAndType(pd));
+			}
+		}
+		
+		List<Map<String, Object>> subXiangmuList=new ArrayList<Map<String,Object>>();
+		FindIterable<Document> documents  = mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("xiangmu")
+				.find(new Document("SSXMWYM", xmwym));//查询分期项目
+		subXiangmuList = MongoDBUtil.documents2MapList(documents);
+		if(null!=subXiangmuList&&subXiangmuList.size()>0){
+			List<Map<String, Object>> subFwList=new ArrayList<Map<String,Object>>();
+			for(int i=0;i<subXiangmuList.size();i++){//遍历所有分期项目,根据发文档案盒号获取文件列表
+				FindIterable<Document> subDoc  = mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("fawen")
+						.find(new Document("XMWYM", MongoDBUtil.convertObject2String(subXiangmuList.get(i).get("XMWYM")))).sort(Sorts.descending("FWRQ"));//根据项目唯一码查询分期项目相关发文
+				subFwList=MongoDBUtil.documents2MapList(subDoc);
+				if(null!=subFwList&&subFwList.size()>0){
+					for(int j=0;j<subFwList.size();j++){//遍历所有分期项目,根据发文档案盒号获取文件列表
+						//Map<String,Object> fw=fwList.get(i);
+						String dahh=MongoDBUtil.convertObject2String(subFwList.get(j).get("DAHH"));
+						PageData pd = new PageData();
+						pd.put("dahh",dahh);
+						pd.put("type", "BA");
+						bAFilesList.addAll(fileService.findByDahAndType(pd));
+						pd.put("type","BS");
+						bSFilesList.addAll(fileService.findByDahAndType(pd));
+						pd.put("type","GF");
+						gFFilesList.addAll(fileService.findByDahAndType(pd));
+						pd.put("type","LZ");
+						lZFilesList.addAll(fileService.findByDahAndType(pd));
+						pd.put("type","ZW");
+						zWFilesList.addAll(fileService.findByDahAndType(pd));
+						pd.put("type","ZX");
+						zXFilesList.addAll(fileService.findByDahAndType(pd));
+					}
+				}
+			}
+			
+		}
+		filesList.add(bAFilesList);
+		filesList.add(bSFilesList);
+		filesList.add(gFFilesList);
+		filesList.add(lZFilesList);
+		filesList.add(zWFilesList);
+		filesList.add(zXFilesList);
+		for(int i=0;i<6;i++){
+			Map<String, Object> fileMap=new HashMap<String,Object>();
+			fileMap.put("id",i);
+			fileMap.put("name",nameArray[i]);
+			fileMap.put("sub",filesList.get(i));
+			childFilesList.add(fileMap);
+		}
+		
+		return childFilesList;
+	}
+	
+	//根据项目唯一码获取所有分期项目
+	public Map<String, Object> getStageDataByXmwym(String xmwym) throws Exception{
+		List<Map<String, Object>> subProjList=new ArrayList<Map<String,Object>>();
+		List<Map<String, Object>> stageDataList=new ArrayList<Map<String,Object>>();
+		Map<String, Object>subMap=new HashMap<String,Object>();
+		//mongoClient = MongoDBUtil.initMongo();
+		Document d=new Document();
+		d.append("SSXMWYM", xmwym);
+		FindIterable<Document> doc  = mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("xiangmu")
+				.find(d);//查询大项目相关发文
+		subProjList=MongoDBUtil.documents2MapList(doc);
+		subMap.put("name", "已有分期");
+		if(null!=subProjList&&subProjList.size()>0){
+			for(int i=0;i<subProjList.size();i++){
+				Map<String,Object> projMap=subProjList.get(i);
+				Map<String,Object> map=new HashMap<String,Object>();
+				map.put("id",MongoDBUtil.convertObject2String(projMap.get("XMWYM")));
+				map.put("name",MongoDBUtil.convertObject2String(projMap.get("XMMC")));
+				map.put("url", "");
+				stageDataList.add(map);
+			}
+		}
+		subMap.put("value", stageDataList);
+		return subMap;
+	}
+		
+	//根据项目唯一码获取所有分期项目
+	public List<Map<String, Object>> getDocumentDataByXmwym(String xmwym) throws Exception{
+		List<Map<String, Object>> fawenList=new ArrayList<Map<String,Object>>();
+		List<Map<String, Object>> xiangmuList=new ArrayList<Map<String,Object>>();
+		List<Map<String, Object>> documentDataList=new ArrayList<Map<String,Object>>();
+	
+		//1、根据项目唯一码获取该项目的条件地字
+		FindIterable<Document> documents  = mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("fawen")
+				.find(new Document("XMWYM",xmwym)).sort(Sorts.descending("FWRQ"));
+		fawenList = MongoDBUtil.documents2MapList(documents);
+		if(null!=fawenList&&fawenList.size()>0){
+			for(int i=0;i<fawenList.size();i++){
+				List<Map<String, Object>> childFilesList=new ArrayList<Map<String,Object>>();
+				Map<String, Object> fawen=new HashMap<String,Object>();
+				Map<String, Object> fw=fawenList.get(i);
+				fawen.put("id",MongoDBUtil.convertObject2String(fw.get("DAHH")));
+				fawen.put("stage","");
+				fawen.put("url","");
+				fawen.put("time",MongoDBUtil.convertObject2String(fw.get("FWRQ")));
+				fawen.put("name",MongoDBUtil.convertObject2String(fw.get("FWWH")));
+				String fwlxId=MongoDBUtil.convertObject2String(fw.get("FWLXID"));
+				if(fwlxId.indexOf("选址、条件")>-1){
+					fawen.put("type","TJXZ");
+					fawen.put("short","选");
+				}else if(fwlxId.indexOf("用地")>-1){
+					fawen.put("type","YDXK");
+					fawen.put("short","地");
+				}else if(fwlxId.indexOf("建设许可")>-1){
+					fawen.put("type","JSXK");
+					fawen.put("short","建");
+				}else if(fwlxId.indexOf("竣工")>-1){
+					fawen.put("type","JGXK");
+					fawen.put("short","核");
+				}else{
+					fawen.put("type","");
+					fawen.put("short","");
+				}
+				
+				
+				String dahh=MongoDBUtil.convertObject2String(fw.get("DAHH"));
+				PageData pd1 = new PageData();
+				List<PageData> BAFilesList = new ArrayList<PageData>();
+				List<PageData> BSFilesList = new ArrayList<PageData>();
+				List<PageData> GFFilesList = new ArrayList<PageData>();
+				List<PageData> LZFilesList = new ArrayList<PageData>();
+				List<PageData> ZWFilesList = new ArrayList<PageData>();
+				List<PageData> ZXFilesList = new ArrayList<PageData>();
+				pd1.put("dahh",dahh);
+				
+				pd1.put("type", "BA");
+				BAFilesList = fileService.findByDahAndType(pd1);
+				pd1.put("type","BS");
+				BSFilesList = fileService.findByDahAndType(pd1);
+				pd1.put("type","GF");
+				GFFilesList = fileService.findByDahAndType(pd1);
+				pd1.put("type","LZ");
+				LZFilesList = fileService.findByDahAndType(pd1);
+				pd1.put("type","ZW");
+				ZWFilesList = fileService.findByDahAndType(pd1);
+				pd1.put("type","ZX");
+				ZXFilesList = fileService.findByDahAndType(pd1);
+				String[]nameArray={"BA-建设单位提报方案","BS-建设单位提报申请","GF-规划局发文","LZ-局内流转文件","ZW-其他政府文件","ZX-第三方咨询文件"};	
+				List<List<PageData>>filesList=new ArrayList<List<PageData>>();
+				filesList.add(BAFilesList);
+				filesList.add(BSFilesList);
+				filesList.add(GFFilesList);
+				filesList.add(LZFilesList);
+				filesList.add(ZWFilesList);
+				filesList.add(ZXFilesList);
+					
+				for(int j=0;j<6;j++){
+					Map<String, Object> fileMap=new HashMap<String,Object>();
+					fileMap.put("id",j);
+					fileMap.put("name",nameArray[j]);
+					fileMap.put("sub",filesList.get(j));
+					childFilesList.add(fileMap);
+				}
+				Map<String, Object>childAttachmentListOptions=new HashMap<String,Object>();
+				childAttachmentListOptions.put("data", childFilesList);
+				fawen.put("childAttachmentlistOptions", childAttachmentListOptions);
+				documentDataList.add(fawen);
+			}
+		}
+		
+		FindIterable<Document> doc1  = mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("xiangmu")
+				.find(new Document("SSXMWYM",xmwym));
+		xiangmuList = MongoDBUtil.documents2MapList(doc1);
+		if(null!=xiangmuList&&xiangmuList.size()>0){
+			for(int i=0;i<xiangmuList.size();i++){
+				Map<String, Object> xiangmu=xiangmuList.get(i);
+				//Document document1 = new Document();
+				//document1.append("XMWYM", new Document("XMWYM", MongoDBUtil.convertObject2String(xiangmu.get("XMWYM"))));
+				FindIterable<Document> documents2  = mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("fawen")
+						.find( new Document("XMWYM", MongoDBUtil.convertObject2String(xiangmu.get("XMWYM")))).sort(Sorts.descending("FWRQ"));
+				fawenList = MongoDBUtil.documents2MapList(documents2);
+				
+				//List<Map<String, Object>> fawenList=new ArrayList<Map<String,Object>>();
+				if(null!=fawenList&&fawenList.size()>0){
+					//List<Map<String, Object>> childAttachmentList=new ArrayList<Map<String,Object>>();
+					for(int j=0;j<fawenList.size();j++){
+						List<Map<String, Object>> childFilesList=new ArrayList<Map<String,Object>>();
+						Map<String, Object> fawen=new HashMap<String,Object>();
+						Map<String, Object> fw=fawenList.get(j);
+						fawen.put("id",MongoDBUtil.convertObject2String(fw.get("DAHH")));
+						//fawen.put("type",MongoDBUtil.convertObject2String(fawen.get("FWLXID")));
+						fawen.put("stage",MongoDBUtil.convertObject2String(fw.get("XMWYM")));
+						fawen.put("stagename",MongoDBUtil.convertObject2String(fw.get("XMMC")));
+						fawen.put("url","");
+						fawen.put("time",MongoDBUtil.convertObject2String(fw.get("FWRQ")));
+						fawen.put("name",MongoDBUtil.convertObject2String(fw.get("FWWH")));
+						String fwlxId=MongoDBUtil.convertObject2String(fw.get("FWLXID"));
+						if(fwlxId.indexOf("选址、条件")>-1){
+							fawen.put("type","TJXZ");
+							fawen.put("short","选");
+						}else if(fwlxId.indexOf("用地")>-1){
+							fawen.put("type","YDXK");
+							fawen.put("short","地");
+						}else if(fwlxId.indexOf("建设许可")>-1){
+							fawen.put("type","JSXK");
+							fawen.put("short","建");
+						}else if(fwlxId.indexOf("竣工")>-1){
+							fawen.put("type","JGXK");
+							fawen.put("short","核");
+						}else{
+							fawen.put("type","");
+							fawen.put("short","");
+						}
+						
+						String dahh=MongoDBUtil.convertObject2String(fw.get("DAHH"));
+						
+						
+						PageData pd1 = new PageData();
+						List<PageData> BAFilesList = new ArrayList<PageData>();
+						List<PageData> BSFilesList = new ArrayList<PageData>();
+						List<PageData> GFFilesList = new ArrayList<PageData>();
+						List<PageData> LZFilesList = new ArrayList<PageData>();
+						List<PageData> ZWFilesList = new ArrayList<PageData>();
+						List<PageData> ZXFilesList = new ArrayList<PageData>();
+							pd1.put("dahh",dahh);
+							//pd = this.getPageData();
+							//String dahh= pd.getString("dahh");
+							pd1.put("type", "BA");
+							BAFilesList = fileService.findByDahAndType(pd1);
+							pd1.put("type","BS");
+							BSFilesList = fileService.findByDahAndType(pd1);
+							pd1.put("type","GF");
+							GFFilesList = fileService.findByDahAndType(pd1);
+							pd1.put("type","LZ");
+							LZFilesList = fileService.findByDahAndType(pd1);
+							pd1.put("type","ZW");
+							ZWFilesList = fileService.findByDahAndType(pd1);
+							pd1.put("type","ZX");
+							ZXFilesList = fileService.findByDahAndType(pd1);
+						String[]nameArray={"BA-建设单位提报方案","BS-建设单位提报申请","GF-规划局发文","LZ-局内流转文件","ZW-其他政府文件","ZX-第三方咨询文件"};	
+						List<List<PageData>>filesList=new ArrayList<List<PageData>>();
+						filesList.add(BAFilesList);
+						filesList.add(BSFilesList);
+						filesList.add(GFFilesList);
+						filesList.add(LZFilesList);
+						filesList.add(ZWFilesList);
+						filesList.add(ZXFilesList);
+							
+						for(int k=0;k<6;k++){
+							Map<String, Object> fileMap=new HashMap<String,Object>();
+							fileMap.put("id",k);
+							fileMap.put("name",nameArray[k]);
+							fileMap.put("sub",filesList.get(k));
+							childFilesList.add(fileMap);
+						}
+						Map<String, Object>childAttachmentListOptions=new HashMap<String,Object>();
+						childAttachmentListOptions.put("data", childFilesList);
+						fawen.put("childAttachmentlistOptions", childAttachmentListOptions);
+						documentDataList.add(fawen);
+						
+					}
+				}
+			}
+		}
+		
+		
+		return documentDataList;
+	}
+	
+	
+	//根据分期项目唯一码获取发文信息
+		public List<Map<String, Object>> getDocumentDataBySubXmwym(String xmwym, String ssxmwym) throws Exception{
+			List<Map<String, Object>> fawenList=new ArrayList<Map<String,Object>>();
+			List<Map<String, Object>> xiangmuList=new ArrayList<Map<String,Object>>();
+			List<Map<String, Object>> documentDataList=new ArrayList<Map<String,Object>>();
+		
+			//1、根据项目唯一码获取该项目的条件地字
+			FindIterable<Document> documents  = mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("fawen")
+					.find(new Document("XMWYM",ssxmwym)).sort(Sorts.descending("FWRQ"));
+			fawenList = MongoDBUtil.documents2MapList(documents);
+			if(null!=fawenList&&fawenList.size()>0){
+				for(int i=0;i<fawenList.size();i++){
+					List<Map<String, Object>> childFilesList=new ArrayList<Map<String,Object>>();
+					Map<String, Object> fawen=new HashMap<String,Object>();
+					Map<String, Object> fw=fawenList.get(i);
+					fawen.put("id",MongoDBUtil.convertObject2String(fw.get("DAHH")));
+					fawen.put("stage","");
+					fawen.put("url","");
+					fawen.put("time",MongoDBUtil.convertObject2String(fw.get("FWRQ")));
+					fawen.put("name",MongoDBUtil.convertObject2String(fw.get("FWWH")));
+					String fwlxId=MongoDBUtil.convertObject2String(fw.get("FWLXID"));
+					if(fwlxId.indexOf("选址、条件")>-1){
+						fawen.put("type","TJXZ");
+						fawen.put("short","选");
+					}else if(fwlxId.indexOf("用地")>-1){
+						fawen.put("type","YDXK");
+						fawen.put("short","地");
+					}else if(fwlxId.indexOf("建设许可")>-1){
+						fawen.put("type","JSXK");
+						fawen.put("short","建");
+					}else if(fwlxId.indexOf("竣工")>-1){
+						fawen.put("type","JGXK");
+						fawen.put("short","核");
+					}else{
+						fawen.put("type","");
+						fawen.put("short","");
+					}
+					
+					
+					String dahh=MongoDBUtil.convertObject2String(fw.get("DAHH"));
+					PageData pd1 = new PageData();
+					List<PageData> BAFilesList = new ArrayList<PageData>();
+					List<PageData> BSFilesList = new ArrayList<PageData>();
+					List<PageData> GFFilesList = new ArrayList<PageData>();
+					List<PageData> LZFilesList = new ArrayList<PageData>();
+					List<PageData> ZWFilesList = new ArrayList<PageData>();
+					List<PageData> ZXFilesList = new ArrayList<PageData>();
+					pd1.put("dahh",dahh);
+					
+					pd1.put("type", "BA");
+					BAFilesList = fileService.findByDahAndType(pd1);
+					pd1.put("type","BS");
+					BSFilesList = fileService.findByDahAndType(pd1);
+					pd1.put("type","GF");
+					GFFilesList = fileService.findByDahAndType(pd1);
+					pd1.put("type","LZ");
+					LZFilesList = fileService.findByDahAndType(pd1);
+					pd1.put("type","ZW");
+					ZWFilesList = fileService.findByDahAndType(pd1);
+					pd1.put("type","ZX");
+					ZXFilesList = fileService.findByDahAndType(pd1);
+					String[]nameArray={"BA-建设单位提报方案","BS-建设单位提报申请","GF-规划局发文","LZ-局内流转文件","ZW-其他政府文件","ZX-第三方咨询文件"};	
+					List<List<PageData>>filesList=new ArrayList<List<PageData>>();
+					filesList.add(BAFilesList);
+					filesList.add(BSFilesList);
+					filesList.add(GFFilesList);
+					filesList.add(LZFilesList);
+					filesList.add(ZWFilesList);
+					filesList.add(ZXFilesList);
+						
+					for(int j=0;j<6;j++){
+						Map<String, Object> fileMap=new HashMap<String,Object>();
+						fileMap.put("id",j);
+						fileMap.put("name",nameArray[j]);
+						fileMap.put("sub",filesList.get(j));
+						childFilesList.add(fileMap);
+					}
+					Map<String, Object>childAttachmentListOptions=new HashMap<String,Object>();
+					childAttachmentListOptions.put("data", childFilesList);
+					fawen.put("childAttachmentlistOptions", childAttachmentListOptions);
+					documentDataList.add(fawen);
+				}
+			}
+				FindIterable<Document> documents2  = mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("fawen")
+						.find( new Document("XMWYM",xmwym)).sort(Sorts.descending("FWRQ"));
+				fawenList = MongoDBUtil.documents2MapList(documents2);
+				
+				//List<Map<String, Object>> fawenList=new ArrayList<Map<String,Object>>();
+				if(null!=fawenList&&fawenList.size()>0){
+					//List<Map<String, Object>> childAttachmentList=new ArrayList<Map<String,Object>>();
+					for(int j=0;j<fawenList.size();j++){
+						List<Map<String, Object>> childFilesList=new ArrayList<Map<String,Object>>();
+						Map<String, Object> fawen=new HashMap<String,Object>();
+						Map<String, Object> fw=fawenList.get(j);
+						fawen.put("id",MongoDBUtil.convertObject2String(fw.get("DAHH")));
+						//fawen.put("type",MongoDBUtil.convertObject2String(fawen.get("FWLXID")));
+						fawen.put("stage",MongoDBUtil.convertObject2String(fw.get("XMWYM")));
+						fawen.put("stagename",MongoDBUtil.convertObject2String(fw.get("XMMC")));
+						fawen.put("url","");
+						fawen.put("time",MongoDBUtil.convertObject2String(fw.get("FWRQ")));
+						fawen.put("name",MongoDBUtil.convertObject2String(fw.get("FWWH")));
+						String fwlxId=MongoDBUtil.convertObject2String(fw.get("FWLXID"));
+						if(fwlxId.indexOf("选址、条件")>-1){
+							fawen.put("type","TJXZ");
+							fawen.put("short","选");
+						}else if(fwlxId.indexOf("用地")>-1){
+							fawen.put("type","YDXK");
+							fawen.put("short","地");
+						}else if(fwlxId.indexOf("建设许可")>-1){
+							fawen.put("type","JSXK");
+							fawen.put("short","建");
+						}else if(fwlxId.indexOf("竣工")>-1){
+							fawen.put("type","JGXK");
+							fawen.put("short","核");
+						}else{
+							fawen.put("type","");
+							fawen.put("short","");
+						}
+						
+						String dahh=MongoDBUtil.convertObject2String(fw.get("DAHH"));
+						
+						
+						PageData pd1 = new PageData();
+						List<PageData> BAFilesList = new ArrayList<PageData>();
+						List<PageData> BSFilesList = new ArrayList<PageData>();
+						List<PageData> GFFilesList = new ArrayList<PageData>();
+						List<PageData> LZFilesList = new ArrayList<PageData>();
+						List<PageData> ZWFilesList = new ArrayList<PageData>();
+						List<PageData> ZXFilesList = new ArrayList<PageData>();
+							pd1.put("dahh",dahh);
+							//pd = this.getPageData();
+							//String dahh= pd.getString("dahh");
+							pd1.put("type", "BA");
+							BAFilesList = fileService.findByDahAndType(pd1);
+							pd1.put("type","BS");
+							BSFilesList = fileService.findByDahAndType(pd1);
+							pd1.put("type","GF");
+							GFFilesList = fileService.findByDahAndType(pd1);
+							pd1.put("type","LZ");
+							LZFilesList = fileService.findByDahAndType(pd1);
+							pd1.put("type","ZW");
+							ZWFilesList = fileService.findByDahAndType(pd1);
+							pd1.put("type","ZX");
+							ZXFilesList = fileService.findByDahAndType(pd1);
+						String[]nameArray={"BA-建设单位提报方案","BS-建设单位提报申请","GF-规划局发文","LZ-局内流转文件","ZW-其他政府文件","ZX-第三方咨询文件"};	
+						List<List<PageData>>filesList=new ArrayList<List<PageData>>();
+						filesList.add(BAFilesList);
+						filesList.add(BSFilesList);
+						filesList.add(GFFilesList);
+						filesList.add(LZFilesList);
+						filesList.add(ZWFilesList);
+						filesList.add(ZXFilesList);
+							
+						for(int k=0;k<6;k++){
+							Map<String, Object> fileMap=new HashMap<String,Object>();
+							fileMap.put("id",k);
+							fileMap.put("name",nameArray[k]);
+							fileMap.put("sub",filesList.get(k));
+							childFilesList.add(fileMap);
+						}
+						Map<String, Object>childAttachmentListOptions=new HashMap<String,Object>();
+						childAttachmentListOptions.put("data", childFilesList);
+						fawen.put("childAttachmentlistOptions", childAttachmentListOptions);
+						documentDataList.add(fawen);
+						
+					}
+				}
+			
+			return documentDataList;
+		}
+	
+	
+	//根据项目唯一码判断项目是否有分期
+	public boolean checkIsHasSubByXmwym(String xmwym) throws Exception{
+		List<Map<String, Object>> subProjList=new ArrayList<Map<String,Object>>();
+		//mongoClient = MongoDBUtil.initMongo();
+		FindIterable<Document> doc  = mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("xiangmu")
+				.find(new Document("SSXMWYM", xmwym));//查询大项目相关发文
+		subProjList=MongoDBUtil.documents2MapList(doc);
+		if(null!=subProjList&&subProjList.size()>0){
+			return true;
+		}else{
+			return false;
+		}
+		
+	}
+	
+	
+	/**
+	 * 获取项目详情
+	 * @return
+	 * @throws Exception 
+	 */
+	@RequestMapping(value="/getProjectDetails")
+	@ResponseBody
+	public Object getProjectDetails() throws Exception{
+		
+		Map<String,Object> map = new HashMap<String,Object>();
+		String errInfo = "success"; 
+		PageData pd = new PageData();
+		Map<String, Object> returnMap=new HashMap<String,Object>();
+		List<Map<String, Object>> attachmentList=new ArrayList<Map<String,Object>>();
+		List<Map<String, Object>> baseData=new ArrayList<Map<String,Object>>();
+		Map<String, Object> stageData=new HashMap<String,Object>();
+		List<Map<String, Object>> documentData=new ArrayList<Map<String,Object>>();
+		try{
+			
+			pd = this.getPageData();
+			String xmwym=pd.getString("XMWYM").trim();
+			String ssxmwym=pd.getString("SSXMWYM").trim();
+			String xmmc=pd.getString("XMMC").trim();
+			returnMap.put("title", xmmc);
+			returnMap.put("analysisUrl", "");
+			mongoClient = MongoDBUtil.initMongo();
+			if(null==ssxmwym||ssxmwym.equals("")){//大项目
+				returnMap.put("stageFlag", checkIsHasSubByXmwym(xmwym));
+				documentData=getDocumentDataByXmwym(xmwym);
+				stageData=getStageDataByXmwym(xmwym);
+				baseData=getBaseProjectDataByXmwym(xmwym);
+				attachmentList=getFilesByXmwym(xmwym);
+			}else{//分期项目
+				returnMap.put("stageFlag", false);
+				documentData=getDocumentDataBySubXmwym(xmwym,ssxmwym);
+				stageData=getStageDataByXmwym(xmwym);
+				baseData=getBaseProjectDataBySubXmwym(xmwym);
+				attachmentList=getFilesByXmwym(xmwym);
+			}
+			Map<String,Object>attachmentlistOptions=new HashMap<String,Object>();
+			attachmentlistOptions.put("data", attachmentList);
+			returnMap.put("attachmentlistOptions", attachmentlistOptions);
+			returnMap.put("baseData", baseData);
+			returnMap.put("stageData", stageData);
+			returnMap.put("documentData", documentData);
+			
+		} catch(Exception e){
+			errInfo=e.toString();
+			logger.error(e.toString(), e);
+		}
+		map.put("returnMap", returnMap);
+		map.put("result", errInfo);		
+		return AppUtil.returnObject(new PageData(), map);
+	}
+	
+	
+	/**
+	 * 根据发文文号获取发文详情
+	 * @return
+	 * @throws Exception 
+	 */
+	@RequestMapping(value="/getFawenDetails")
+	@ResponseBody
+	public Object getFawenDetails() throws Exception{
+		
+		PageData pd = new PageData();
+		Map<String, Object> returnMap=new HashMap<String,Object>();
+		List<String>BaojianData=new ArrayList<String>();
+		List<String>FawenData=new ArrayList<String>();
+		List<String>JingbanData=new ArrayList<String>();
+		List<String>GuidangData=new ArrayList<String>();
+		List<String>ZhibiaoData=new ArrayList<String>();
+		String title="";
+		String ZhibiaoType="";
+		String[]keyArrayBaojian={"XMBH","XMSD","XMMC","XMWZ","JSDW","ZZJGDMZ","JSGM","ZTZ","SJDW","BJR","LXFS"};
+		String[]keyArrayFawen={"GCLB","SBLX","SPJD","FWLX","FWWH","FWSJ","ZSGYH"};
+		String[]keyArrayJingban={"CBBM","JBR","QPR"};
+		String[]keyArrayGuidang={"DABH","SZDAH","DAHH","DALY","LRRY","LRRQ","SHRY","SHRQ","SHZT","BZ"};
+		String[]keyArrayZb_XZTJ={"YDXZ","SFHHYD","HHYDBL","YDMJ","RJL","JZMD","LDL","TCW","KZGD"};
+		String[]keyArrayZb_YD={"YDXZ","SFHHYD","HHYDBL","TZGLLX","TDSYLX","HMCSYQ"};
+		String[]keyArrayZb_JZJZ={"YDXZ","SFHHYD","HHYDBL","YDMJ","RJL","JZMD","LDL","ZJZMJ","DSJZMJ","DXJZMJ","TCW","DSTCW","DXTCW","ZZJZMJ","HS","BGJZMJ","PTLX","PTJZMJ","ZYDLMJ","JZWSYXZ","HMCSYQ"};
+		String[]keyArrayZb_JZDQ={"YDXZ","YDMJ","DLZCD","DLKD","DLJB","DMXS","SJBZ","ZSJZMJ","HMCSYQ"};
+		String[]keyArrayZb_JZGX={"YDXZ","YDMJ","GXLX","GXZCD","ZSJZMJ","HMCSYQ"};
+		String[]keyArrayZb_HZJZ={"GCDZ","KCDW","SJDW","YDMJ","ZJZMJ","DSJZMJ","DXJZMJ","JZZDMJ","JZGD","CS","JGTX","KZSFLD","KZSFJB","CFKD","JCXS","NHDJ","RFDJ"};
+		String[]keyArrayZb_HZDQ={"GCDZ","KCDW","SJDW","YDMJ","DLZCD","DLKD","DMXS","ZSJZMJ"};
+		String[]keyArrayZb_HZGX={"GCDZ","KCDW","SJDW","YDMJ","GXLX","GXZCD"};
+		
+		List<Map<String, Object>> fawenList=new ArrayList<Map<String,Object>>();
+		try{
+			
+			pd = this.getPageData();
+			String fwwh=pd.getString("fwwh").trim();
+			//returnMap.put("title", fwwh);
+			title=fwwh;
+			mongoClient = MongoDBUtil.initMongo();
+			FindIterable<Document> doc  = mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("fawen")
+					.find(new Document("FWWH", fwwh)).sort(Sorts.descending("FWRQ"));//查询大项目相关发文
+			fawenList=MongoDBUtil.documents2MapList(doc);
+			if(null!=fawenList&&fawenList.size()>0){
+				Map<String,Object>fawen=fawenList.get(0);
+				for(int j=0;j<keyArrayBaojian.length;j++){
+					BaojianData.add(MongoDBUtil.convertObject2String(fawen.get(keyArrayBaojian[j])));
+				}
+				for(int j=0;j<keyArrayFawen.length;j++){
+					FawenData.add(MongoDBUtil.convertObject2String(fawen.get(keyArrayFawen[j])));
+				}
+				for(int j=0;j<keyArrayJingban.length;j++){
+					JingbanData.add(MongoDBUtil.convertObject2String(fawen.get(keyArrayJingban[j])));
+				}
+				for(int j=0;j<keyArrayGuidang.length;j++){
+					GuidangData.add(MongoDBUtil.convertObject2String(fawen.get(keyArrayGuidang[j])));
+				}
+				
+				String fwlxId= MongoDBUtil.convertObject2String(fawen.get("FWLXID"));
+				switch(fwlxId){
+					case "选址、条件":
+						ZhibiaoType="ZBXX-XZTJ";
+						for(int j=0;j<keyArrayZb_XZTJ.length;j++){
+							ZhibiaoData.add(MongoDBUtil.convertObject2String(fawen.get(keyArrayZb_XZTJ[j])));
+						}
+						break;
+					case "用地":
+						ZhibiaoType="ZBXX-YDXK";
+						for(int j=0;j<keyArrayZb_YD.length;j++){
+							ZhibiaoData.add(MongoDBUtil.convertObject2String(fawen.get(keyArrayZb_YD[j])));
+						}
+						break;
+					case "建设许可（建筑工程）":
+						ZhibiaoType="ZBXX-JSXK-JSGC";
+						for(int j=0;j<keyArrayZb_JZJZ.length;j++){
+							ZhibiaoData.add(MongoDBUtil.convertObject2String(fawen.get(keyArrayZb_JZJZ[j])));
+						}
+						break;
+					case "建设许可（市政道桥）":
+						ZhibiaoType="ZBXX-JSXK-SZDQ";
+						for(int j=0;j<keyArrayZb_JZDQ.length;j++){
+							ZhibiaoData.add(MongoDBUtil.convertObject2String(fawen.get(keyArrayZb_JZDQ[j])));
+						}
+						break;
+					case "建设许可（市政管线）":
+						ZhibiaoType="ZBXX-JSXK-SZGX";
+						for(int j=0;j<keyArrayZb_JZGX.length;j++){
+							ZhibiaoData.add(MongoDBUtil.convertObject2String(fawen.get(keyArrayZb_JZGX[j])));
+						}
+						break;
+					case "竣工（建筑工程）":
+						ZhibiaoType="ZBXX-JGXK-JZGC";
+						for(int j=0;j<keyArrayZb_HZJZ.length;j++){
+							ZhibiaoData.add(MongoDBUtil.convertObject2String(fawen.get(keyArrayZb_HZJZ[j])));
+						}
+						break;
+					case "竣工（市政道桥）":
+						ZhibiaoType="ZBXX-JGXK-SZDQ";
+						for(int j=0;j<keyArrayZb_HZDQ.length;j++){
+							ZhibiaoData.add(MongoDBUtil.convertObject2String(fawen.get(keyArrayZb_HZDQ[j])));
+						}
+						break;
+					case "竣工（市政管线）":
+						ZhibiaoType="ZBXX-JGXK-SZGX";
+						for(int j=0;j<keyArrayZb_HZGX.length;j++){
+							ZhibiaoData.add(MongoDBUtil.convertObject2String(fawen.get(keyArrayZb_HZGX[j])));
+						}
+						break;
+					default:
+						System.out.println("没有匹配的"+fwlxId);
+				}
+				
+				
+			}
+				
+			
+			returnMap.put("title", title);
+			returnMap.put("ZhibiaoType", ZhibiaoType);
+			returnMap.put("BaojianData", BaojianData);
+			returnMap.put("FawenData", FawenData);
+			returnMap.put("JingbanData", JingbanData);
+			returnMap.put("GuidangData", GuidangData);
+			returnMap.put("ZhibiaoData", ZhibiaoData);
+			
+		} catch(Exception e){
+			//errInfo=e.toString();
+			logger.error(e.toString(), e);
+		}
+		//map.put("returnMap", returnMap);
+		//map.put("result", errInfo);		
+		return AppUtil.returnObject(new PageData(), returnMap);
+	}
+	
+	
+	
+	/**
+	 * 根据项目名称搜索项目列表
+	 * @return
+	 * @throws Exception 
+	 */
+	@RequestMapping(value="/searchByXmmc")
+	@ResponseBody
+	public Object searchByXmmc() throws Exception{
+		
+		Map<String,Object> map = new HashMap<String,Object>();
+		String errInfo = "success"; 
+		PageData pd = new PageData();
+		List<Map<String, Object>> projectList=new ArrayList<Map<String,Object>>();
+		try{
+			pd = this.getPageData();
+			String xmmc=pd.getString("xmmc");
+			mongoClient = MongoDBUtil.initMongo();
+			BasicDBObject con= new BasicDBObject("XMMC",  Pattern.compile("^.*"+xmmc+".*$", Pattern.CASE_INSENSITIVE));
+			//document.append("FWLXID", pd.get("FWLXID"));
+			FindIterable<Document> documents  = mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("xiangmu")
+					.find(con);
+			
+			projectList = MongoDBUtil.documents2MapList(documents);
+			//fawenList1= SphzUtils.fawenLeftJoinDic(dictionariesService, fawenList);
+			//map.put("subxmwym",subxmwym);
+
+		} catch(Exception e){
+			errInfo=e.toString();
+			logger.error(e.toString(), e);
+		}
+		
+	
+		map.put("projectList", projectList);
+		map.put("result", errInfo);				//返回结果
+		//close();
+		return AppUtil.returnObject(new PageData(), map);
+	}
+	
+	
+	
+	
+	/**
+	 * 项目汇总
+	 * @return
+	 * @throws Exception 
+	 */
+	@RequestMapping(value="/statisticsProject")
+	@ResponseBody
+	public Object statisticsProject() throws Exception{
+		
+		Map<String,Object> map = new HashMap<String,Object>();
+		String errInfo = "success"; 
+		String xmmc="",xmwz="",jsdw="",ydxz="",ydmj="",rjl="",jzmd="",tcw="",kzgd="",fqxmqk="",html="<p>";
+		PageData pd = new PageData();
+		List<Map<String, Object>> fawenList=new ArrayList<Map<String,Object>>();
+		List<Map<String, Object>> subProjectList=new ArrayList<Map<String,Object>>();
+		
+		//List<Map<String, Object>> totalSubProjectFawenList=new ArrayList<Map<String,Object>>();
+		List totalSubProjectFawenList=new ArrayList();
+		try{
+			pd = this.getPageData();
+			String xmwym=pd.getString("xmwym");
+			mongoClient = MongoDBUtil.initMongo();
+			//todo:1、根据项目唯一码获取项目发文条件；2、根据项目唯一码获取所有分期项目列表；3、遍历分期项目列表，计算各分期项目的指标；4、将每个分期项目指标进行运算，得到结果
+			//xxx项目
+			//该项目由XX建设，项目位于XXX
+			
+			BasicDBObject con= new BasicDBObject("XMWYM",xmwym);
+			con.append("FWLX", "条字");
+			//document.append("FWLXID", pd.get("FWLXID"));
+			FindIterable<Document> documents  = mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("fawen")
+					.find(con).sort(Sorts.descending("FWRQ"));
+			fawenList = MongoDBUtil.documents2MapList(documents);
+			if(null!=fawenList&&fawenList.size()>0){
+				Map<String, Object> fawen=fawenList.get(0);
+				html+=fawen.get("XMMC")+"：</br>";
+				html+="该项目由<u><b>"+fawen.get("JSDW")+"</b></u>建设，项目用地位于<u><b>"+fawen.get("XMWZ")+"</b></u>；规划用地性质为<u><b>"+fawen.get("YDXZ")+"</b></u>；"+"用地面积为<u><b>"+fawen.get("YDMJ")+"</b></u>；"+"总容积率为<u><b>"+fawen.get("RJL")+"</b></u>；"+"建筑密度为<u><b>"+
+						fawen.get("JZMD")+"</b></u>；";
+			}
+			
+			Document document = new Document();
+			document.append("SSXMWYM",xmwym);
+			//document.append("FWLXID", pd.get("FWLXID"));
+			FindIterable<Document> documents1  = mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("xiangmu")
+					.find(document);
+			subProjectList = MongoDBUtil.documents2MapList(documents1);
+			
+			if(null!=subProjectList||subProjectList.size()>0){
+				html+="<br/>该项目已有分期：";
+				for(int i=0;i<subProjectList.size();i++){
+					List<Map<String, Object>> subProjectFawenList=new ArrayList<Map<String,Object>>();
+					Map<String, Object> project=subProjectList.get(i);
+					String subxmwym=MongoDBUtil.convertObject2String(project.get("XMWYM"));
+					String subxmmc=MongoDBUtil.convertObject2String(project.get("XMMC"));
+					html+="<b><u>"+subxmmc+"</u></b>；";
+					Document document2=new Document();
+					document2.append("XMWYM", subxmwym);
+					FindIterable<Document> documents2  = mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("fawen")
+							.find(document2).sort(Sorts.ascending("FWRQ"));
+					subProjectFawenList = MongoDBUtil.documents2MapList(documents2);
+					totalSubProjectFawenList.add(subProjectFawenList);
+				}
+			}
+			Double totalZjzmj=0d;
+			if(totalSubProjectFawenList.size()>0){
+				html+="</br>其中，";
+				for(int i=0;i<totalSubProjectFawenList.size();i++){
+					List<Map<String, Object>>SubProjectFawenList=(List<Map<String, Object>>) totalSubProjectFawenList.get(i);
+					Map<String, Object>proj=subProjectList.get(i);
+					for(int j=0;j<SubProjectFawenList.size();j++){
+						Map<String, Object> fawen=SubProjectFawenList.get(j);
+						if( MongoDBUtil.convertObject2String(fawen.get("FWLX")).equals("建设工程规划许可证")){
+							if(!fawen.get("ZJZMJ").equals("")){
+								totalZjzmj+=Double.parseDouble(fawen.get("ZJZMJ").toString().replace("㎡", ""));
+							}
+							
+						}
+						html+= proj.get("XMMC")+"已发《"+fawen.get("SBLX")+"》"+fawen.get("FWWH")+"；</br>";
+					}
+					//html+= proj.get("XMMC")+"已发"+SubProjectFawenList;
+				} 
+			}
+			
+			html+="已发绿证总建筑面积为："+totalZjzmj+"㎡";
+			
+			html+="</p>";
+
+		} catch(Exception e){
+			errInfo=e.toString();
+			logger.error(e.toString(), e);
+		}
+		map.put("html",html);
+		map.put("result", errInfo);				//返回结果
+		//close();
+		return AppUtil.returnObject(new PageData(), map);
+	}
+	
+	/**
+	 * 去修改发证信息页面
+	 * @return
+	 * @throws Exception 
+	 */
+	@RequestMapping(value="/goEdit")
+	public ModelAndView goEdit() throws Exception{
+		ModelAndView mv = this.getModelAndView();
+		PageData pd = new PageData();
+		//pd.put("DEPARTMENT",Jurisdiction.getUsername());
+		pd=this.getPageData();
+		
+		mongoClient = MongoDBUtil.initMongo();
+		Document document = new Document();
+		document.append("XMWYM", pd.getString("XMWYM"));
+		FindIterable<Document> documents  = mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("xiangmu")
+				.find(document);
+		
+		List<Map<String, Object>> documents2MapList = MongoDBUtil.documents2MapList(documents);
+
+		Map<String, Object> map = documents2MapList.get(0);
+		
+		pd.put("FILE_TYPE",1);
+		pd.put("BUSINESS_ID",pd.getString("XMWYM"));
+		PageData pdRed = fileService.findByBusinessId(pd);
+		if(null!=pdRed){
+			map.put("redFileName",pdRed.getString("FILE_NAME"));
+		}
+		
+		mv.addObject("pd",map);
+		mv.addObject("msg", "edit");
+		mv.addObject("title", "信息编辑");
+		mv.setViewName("sphz/project/project_edit");
+		//close();
+		return mv;
+	}
+	
+	@RequestMapping(value="/edit")
+	@ResponseBody
+	public Object edit(HttpServletRequest request) throws Exception{
+		Map<String,Object> map = new HashMap<String,Object>();
+		String errInfo = "success";
+		FilePageData pd = new FilePageData(request);
+		System.out.println(pd);
+		try {
+			mongoClient = MongoDBUtil.initMongo();
+			Document document = ConvertUtil.convertDocByMap(pd);
+			mongoClient.getDatabase(MongoDBUtil.getDbName()).getCollection("xiangmu").updateOne(Filters.eq("XIANGMU_ID", pd.getString("XIANGMU_ID")),new Document("$set",document));
+			
+			//上传红线文件
+			SphzUtils.uploadFile(request, pd.getString("XMWYM"), "redFile", "hxfwbasepath", 1, fileService);//红线范围
+		} catch (Exception e) {
+			errInfo=e.toString();
+		}
+		
+		map.put("result", errInfo);				//返回结果
+		//close();
+		return AppUtil.returnObject(new PageData(), map);
+	}
+	
+	/**
+	 * 去规划许可建筑面积报表页面
+	 * @return
+	 * @throws Exception 
+	 */
+	@RequestMapping(value="/exportGhxkjzmj")
+	public ModelAndView exportGhxkjzmj(HttpServletRequest request) throws Exception{
+		ModelAndView mv = this.getModelAndView();
+		ExportManager  exportManager=(ExportManager)Utils.getApplicationContext().getBean(ExportManager.BEAN_ID);
+		Map<String,Object> parameters=new HashMap<String,Object>();
+		parameters.put("param", request.getParameter("param"));
+		HtmlReport htmlReport = exportManager.exportHtml("file:城乡规划许可管理情况表.ureport.xml",request.getContextPath(),parameters);
+		String html="<style type=\"text/css\">";
+		html+=htmlReport.getStyle();
+		html+="</style>";
+		html+=htmlReport.getContent();
+		mv.addObject("param", "gagaga");
+		mv.addObject("html", html);
+		mv.setViewName("sphz/fawen/test");
+		return mv;
+	}
+	
+	
+}

@@ -1,0 +1,363 @@
+/**
+ * Created by zhl on 18-3-13.
+ */
+
+define(["dojo/_base/declare", "esri/layers/FeatureLayer","esri/layers/ArcGISDynamicMapServiceLayer","esri/layers/ArcGISTiledMapServiceLayer",
+        "esri/geometry/Point","esri/geometry/Polygon","esri/geometry/Extent","esri/SpatialReference","esri/graphic","esri/symbols/SimpleFillSymbol",
+        "esri/symbols/SimpleLineSymbol","esri/Color","esri/tasks/query", "esri/tasks/QueryTask","esri/tasks/GeometryService","esri/tasks/AreasAndLengthsParameters","dojo/_base/array"],
+    function (declare, FeatureLayer,ArcGISDynamicMapServiceLayer,ArcGISTiledMapServiceLayer,Point,Polygon,Extent,SpatialReference,Graphic,
+    		SimpleFillSymbol,SimpleLineSymbol,Color,Query,QueryTask,GeometryService,AreasAndLengthsParams,arrayUtils) {
+        var h = declare("StaticLayer", null, {
+            map: new Object(),
+            constructor: function (map, queryUrl) {
+                this.map = map;
+            },
+            /**
+             * 移除图层
+             * @param layerName
+             */
+            removeLayer: function (layerName) {
+                var map = this.map;
+                if (map.getLayer(layerName)){
+                	map.removeLayer(map.getLayer(layerName));
+                	//从全局变量中移除
+                	for(var i=0;i<mapApp.dynamicLayersUrls.length;i++){
+                		if(mapApp.dynamicLayersUrls[i].layerId==layerName)
+                		mapApp.dynamicLayersUrls.splice(i,1);
+                	}	
+                }
+                    
+            },
+            /**
+             * 图层居中
+             * @param layerName
+             */
+            zoomLayerToCenter:function(layerName){
+            	var map=this.map;
+            	if(map.getLayer(layerName)){
+	            	var center= map.getLayer(layerName).initialExtent.getCenter();
+	            	var point=new Point(center.x,center.y,map.spatialReference);
+	            	map.centerAt(point);
+            	}
+            },
+            /**
+             * FeatureLayer
+             * @param featureLayerUrl 服务url
+             */
+            showFeatureLayer: function (featureLayerUrl,layerName) {
+                var map = this.map;
+                var featureLayer = new FeatureLayer(featureLayerUrl, {
+                    id: layerName,
+                    mode:FeatureLayer.MODE_SNAPSHOT
+                });
+                map.addLayer(featureLayer); 
+            }, 
+            /**
+             * DynamicMapService
+             * @param DynamicMapServiceUrl 服务url
+             */
+            showDynamicMapService: function (DynamicMapServiceUrl,layerName) {
+                var map = this.map;
+                var DynamicMapService = new ArcGISDynamicMapServiceLayer(DynamicMapServiceUrl, {
+                    id: layerName
+                });
+                map.addLayer(DynamicMapService); 
+               //存入全局变量
+        		var larerInfo={
+        			layerUrl:DynamicMapServiceUrl,
+        			layerName:null,
+        			layerId:layerName,
+        			layer:DynamicMapService
+        		}
+        		mapApp.dynamicLayersUrls.push(larerInfo);
+            }, 
+            /**
+             * TiledMapService
+             * @param TiledMapServiceUrl 服务url
+             */
+            showTiledMapService: function (TiledMapServiceUrl,layerName) {
+                var map = this.map;
+                var TiledMapService = new ArcGISTiledMapServiceLayer(TiledMapServiceUrl, {
+                    id: layerName
+                });
+                map.addLayer(TiledMapService); 
+                //存入全局变量
+        		var larerInfo={
+        			layerUrl:TiledMapServiceUrl,
+        			layerName:null,
+        			layerId:layerName,
+        			layer:TiledMapService
+        		}
+        		mapApp.tiledLayersUrls.push(larerInfo);
+            }, 
+            /**
+             * 设置图层顺序
+             * @param index 图层顺序号
+		     * @param layerName 图层id,用于唯一标识图层
+             */
+            setLayerOrder: function (layerName,index) {
+                var map = this.map;
+                var layer=mapApp.map.getLayer(layerName);
+                if(layer){
+                	map.reorderLayer(layer,index); 
+                }  
+            }, 
+            /**
+             * @param opacity 图层透明度
+		     * @param layerName 图层id,用于唯一标识图层
+             */
+            setLayerOpacity: function (layerName,opacity) {
+                var map = this.map;
+                var layer=mapApp.map.getLayer(layerName); 
+                if(layer){
+                	layer.setOpacity(opacity);
+                }
+            }, 
+            /**
+             * @param layerUrl 图层url
+		     * @param layerName 图层id,用于唯一标识图层
+		     * @param layerType 图层类型，0，1，2
+		     * @param isVisible true/false是否可见
+             */
+            setLayerVisible: function (layerUrl,layerName,layerType,isVisible) {
+                var map = this.map;
+                var layer=mapApp.map.getLayer(layerName); 
+                if(!layer){           
+                	if(layerType=="0"){
+                		//this.showTiledMapService(layerUrl,layerName,dataUrl);
+                		this.showTiledMapService(layerUrl,layerName);
+                	}else if(layerType=="1"){
+                		this.showFeatureLayer(layerUrl,layerName);
+                	}else if(layerType=="2"){
+                		this.showDynamicMapService(layerUrl,layerName);
+                	}
+                	layer=mapApp.map.getLayer(layerName); 
+                }
+                layer.setVisibility(isVisible);               
+                if(layerType=="2"){
+                	//在全局变量中设置其visible
+                	for(var i=0;i<mapApp.dynamicLayersUrls.length;i++){
+                		if(mapApp.dynamicLayersUrls[i].layerId==layerName){
+                			mapApp.dynamicLayersUrls[i].visible=isVisible;
+                			break;
+                		}	   
+                	}
+                }
+                if(layerType=="0"){
+                	//在全局变量中设置其visible
+                	for(var i=0;i<mapApp.tiledLayersUrls.length;i++){
+                		if(mapApp.tiledLayersUrls[i].layerId==layerName){
+                			mapApp.tiledLayersUrls[i].visible=isVisible;
+                			break;
+                		}	   
+                	}
+                }
+                
+            },
+            /**
+             * 显示图例
+             */
+            showLegend: function (panelId) {
+                var map = this.map;  
+                require(["esri/dijit/Legend"],function(Legend){
+                	var layerInfos=[];
+                	for(var i=0;i<mapApp.dynamicLayersUrls.length;i++){
+                		var layerInfo={
+                			layer:mapApp.dynamicLayersUrls[i].layer,
+                			title:" "
+                		}
+                		layerInfos.push(layerInfo);
+                	}
+                	for(var i=0;i<mapApp.tiledLayersUrls.length;i++){
+                		var layerInfo={
+                			layer:mapApp.tiledLayersUrls[i].layer,
+                			title:" "
+                		}
+                		layerInfos.push(layerInfo);
+                	}
+                    if(layerInfos.length>0&&!innerPubFun.legendDijit){
+                    	innerPubFun.legendDijit=new Legend({
+                    		map:map,
+                    		layerInfos:layerInfos,
+                    		arrangement:2
+                    	},panelId);
+                    	innerPubFun.legendDijit.startup();
+                    }
+                }) 
+            },
+            /**
+             * 清除图例
+             */
+            removeLegend: function () {
+                $("#legendDiv").css("display","none"); 
+            },
+            /**
+             * 显示cad图层
+             */
+            showCadLayer:function(geometry,fileName){
+            	var layerId=fileName+new Date().getTime();
+            	mapApp.cadLayerIds.push(layerId);
+				var cadlayer=new esri.layers.GraphicsLayer({id:layerId});
+				var map = mapApp.map;
+		    	var polygon=new Polygon(geometry);		    	
+		    	polygon.setSpatialReference(map.spatialReference);
+		    	var gra=new Graphic(polygon);
+		        var fillsymbol=new SimpleFillSymbol(SimpleFillSymbol.STYLE_NULL,new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,new Color("#ff0000"),2));
+		    	gra.setSymbol(fillsymbol);
+		    	cadlayer.add(gra);
+				map.addLayer(cadlayer);
+				map.centerAndZoom(polygon.getExtent().getCenter());
+				//加载文件到列表
+				$("#whmaptoolbar-tool-result .result-title").html("CAD文件列表");
+				var html = '<ul><label><input type="checkbox" class="flat" id="' + layerId + '" checked="checked"><span id="0" class="switch"><span class="slider"></span></span>' + fileName + '</label></ul>';
+				$("#whmaptoolbar-tool-result .result-content").append(html);
+				$("#whmaptoolbar-tool-result").show();
+				//CAD图层的显示与隐藏
+				$("#whmaptoolbar-tool-result label").click(function(e) {
+					// 阻止再次触发input点击事件
+					if ($(e.target).is("input")) {
+						return;
+					}
+					var layerId = $(this).children("input").attr("id");
+					var status = !$(this).children("input").prop("checked");
+					mapApp.setLayerVisible(null, layerId, null, status);
+				});
+
+			},
+      
+            getFeaturesByGeometry: function (geometry, layerUrl) { 
+            	var _this=this;
+                geometry = new Polygon(geometry);
+	            geometry.setSpatialReference(this.map.spatialReference);
+                var query = new Query();
+                var queryTask = new QueryTask(layerUrl+"/0");
+                query.outFields = ['*'];
+                query.returnGeometry = true;
+                query.geometry=geometry;
+                queryTask.execute(query, function (featureSet) {
+                	var features=featureSet.features;
+                	var displayFieldName=featureSet.displayFieldName;
+                	if(features.length==0){
+                		//提示无结果
+        				$("#whmaptoolbar-tool-statics .result-title").html("分析结果(平方公里)");
+        				$("#whmaptoolbar-tool-statics .result-content").append("<ul><li>项目范围与所选图层不相交，无分析结果</li></ul>");
+        				$("#whmaptoolbar-tool-statics").show();
+                	}else{
+                		//求交
+                		_this.cutLayer(features, geometry,displayFieldName,function(result){
+                			//渲染
+                			_this.getLayerSymbol(layerUrl+"/0",function(render,filed){
+                    			//显示;
+                				for(var i=0;i<result.length;i++){
+                					var value=result[i].attributes[filed];
+                					//便利render获取样式
+                					for(var j=0;j<render.length;j++){
+                						if(render[j].value==value){
+                							var symbol=render[j].symbol;
+                							var fillsymbol=new SimpleFillSymbol();
+                							if(symbol.outline){
+                								fillsymbol.setOutline(new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,new Color(symbol.outline.color),symbol.outline.width));					
+                							}				
+                							fillsymbol.setColor(new Color(symbol.color));
+                							result[i].setSymbol(fillsymbol);
+                							break;
+                						}	
+                					}	
+                					mapApp.map.graphics.add(result[i]);
+                				}
+                				_this.groupFeatures(result,filed);
+                        	});
+                		});	
+                	}         	
+                });
+            },
+            
+            /**
+             * 获取dynamicLayer的sublayer的制图样式
+             * 调用arcgis的rest api 
+             */
+            getLayerSymbol:function(layerUrl,callback){
+            	$.ajax({
+            		url:layerUrl+'?f=pjson',
+            		dataType:'json',
+            		async:false,
+            		success:function(result){
+            			callback(result.drawingInfo.renderer.uniqueValueInfos,result.drawingInfo.renderer.field1);
+            		},
+            		error:function(e){
+            			console.log(e);
+            		}
+            	})
+            },
+            /**
+             * 求交
+             */
+            cutLayer:function(features,geometry,displayFieldName,callback){
+            	var _this=this;
+        		var geometryService=new GeometryService(mapApp.layerConfig.GeometryServiceUrl);
+        		//转化为geometry数组
+        		var geometrys=[];
+        		for(var i=0;i<features.length;i++){
+        			delete features[i].geometry._ring;
+        			geometrys.push(new Polygon(features[i].geometry.toJson()));
+        		}			   
+        		geometryService.intersect(geometrys,geometry,function(result){
+        			var r=[];
+        			//默认 求交后的数组与求交前，顺序相同 ----待验证
+        			for(var i=0;i<result.length;i++){
+        				var feature=new Graphic(result[i],null,features[i].attributes);
+        				r.push(feature);
+        			}
+        			callback(r);
+        		});
+            },
+            /**
+             * feature分组统计
+             */
+            groupFeatures:function(features,filed){
+            	var map={};
+            	arrayUtils.forEach(features,function(g){
+            	   if(!map[g.attributes[filed]]){
+            		   var obj={
+            			   color:g.symbol.color,
+            			   geometrys:[g.geometry]
+            		   };
+            		   map[g.attributes[filed]]=obj;
+            	   }else{
+            		   map[g.attributes[filed]].geometrys.push(g.geometry);
+            	   }
+            	});
+            	//遍历map
+            	//加载分析结果到列表
+				$("#whmaptoolbar-tool-statics .result-title").html("分析结果(平方公里)");
+				$("#whmaptoolbar-tool-statics .result-content").append("<ul></ul>");
+				$("#whmaptoolbar-tool-statics").show();
+            	for(var key in map){
+            		this.getArea(map[key].geometrys,key,map[key].color,function(area,key1,color){
+        				var html = '<li><div style="background-color:'+color+'"></div><span>' + key1+'</span><span>'+area + '<span></li>';
+        				$("#whmaptoolbar-tool-statics .result-content ul").append(html);
+            		});
+            	}
+            },
+            /**
+             * 按照属性group后，求面积和
+             */
+            getArea:function(geometrys,key,color,callback){
+            	var geometryService=new GeometryService(mapApp.layerConfig.GeometryServiceUrl);
+        		var areasAndLengthsParams=new AreasAndLengthsParams();
+        		areasAndLengthsParams.lengthUnit=GeometryService.UNIT_KILOMETER;  //千米
+        		areasAndLengthsParams.areaUnit=GeometryService.UNIT_SQUARE_KILOMETERS;  //平方公里
+        		geometryService.simplify(geometrys,function(result){
+        			areasAndLengthsParams.polygons=result;
+        			geometryService.areasAndLengths(areasAndLengthsParams,function(ms){
+        				var sumarea=0;
+        				arrayUtils.forEach(ms.areas,function(m){
+        					sumarea+=m;
+        				});
+        				callback(sumarea.toFixed(2),key,color);
+        			})
+        		});
+            }
+        });
+        return h;
+    })

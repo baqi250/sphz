@@ -1,0 +1,210 @@
+.attach-box {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 1050;
+    overflow-x: hidden;
+    overflow-y: auto;
+    outline: 0;
+}
+
+.attach-box-body {
+    position: relative;
+    width: 640px;
+    margin: 10% auto;
+    display: block;
+    background-color: white;
+    border-radius: 3px;
+    border-top: 3px solid #3c8dbc;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+    /* 动画 */
+    transform: translate(0, 0);
+    transition: transform .3s ease-out;
+    -webkit-transform: translate(0, 0);
+    -webkit-transition: -webkit-transform .3s ease-out;
+    -o-transform: translate(0, 0);
+    -o-transition: -o-transform .3s ease-out;
+    -ms-transform: translate(0, 0);
+    -ms-transition: -ms-transform .3s ease-out;
+}
+
+.attach-box-header {
+    display: block;
+    padding: 6px 10px;
+    position: relative;
+    border-bottom: 1px solid #f4f4f4;
+}
+
+.attach-box-header:before {
+    content: " ";
+    display: table;
+}
+
+.attach-box-header .attach-box-title {
+    display: inline-block;
+    font-size: 16px;
+    margin: 0;
+    line-height: 1;
+}
+
+.attach-box-header .attach-box-close {
+    position: absolute;
+    display: block;
+    right: 10px;
+    top: 2px;
+    float: right !important;
+}
+
+.attach-box-result {
+    width: 100%;
+    height: 460px;
+    padding: 10px;
+    overflow-y: scroll;
+}
+
+
+/* tree */
+
+.panel-body {
+    padding: 0 !important;
+}
+
+.attachbox-panel {
+    border: none;
+    box-shadow: none;
+    border-radius: 2px !important;
+    border: 1px solid #f2f2f2;
+    border-left: 2px solid #0073b7;
+}
+
+.attachbox-panel a {
+    text-decoration: none;
+    color: #0073b7;
+}
+
+.attachbox-panel a:hover {
+    color: #004872;
+}
+
+.attachbox-panel .panel-heading {
+    position: relative;
+}
+
+.attachbox-panel .panel-heading .panel-title {
+    max-width: 96%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.attachbox-panel .panel-heading:after {
+    position: absolute;
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-width: 2px 0 0 2px;
+    border-style: solid;
+    border-color: #0073b7;
+    right: 1em;
+    -webkit-transform: rotate(135deg) translate(0, -50%);
+    -ms-transform: rotate(135deg) translate(0, -50%);
+    -o-transform: rotate(135deg) translate(0, -50%);
+    transform: rotate(135deg) translate(0, -50%);
+    -webkit-transform-origin: top;
+    -ms-transform-origin: top;
+    -o-transform-origin: top;
+    transform-origin: top;
+    top: 50%;
+    -webkit-transition: all 0.3s ease-out;
+    -o-transition: all 0.3s ease-out;
+    transition: all 0.3s ease-out;
+}
+
+.attachbox-panel a[aria-expanded=true] .panel-heading:after {
+    -webkit-transform: rotate(-135deg) translate(0, -50%);
+    -ms-transform: rotate(-135deg) translate(0, -50%);
+    -o-transform: rotate(-135deg) translate(0, -50%);
+    top: 45%;
+    width: 7px;
+    transform: rotate(-135deg) translate(0, -50%);
+}
+
+.attachbox-table {
+    list-style: none;
+    color: #666666;
+    font-size: 15px;
+    margin: 0;
+    padding: 0;
+}
+
+.attachbox-table li label {
+    margin: 0;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.attachbox-table li {
+    padding: 10px 70px 10px 20px;
+    position: relative;
+    overflow:hidden;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+}
+
+.attachbox-table li:last-child {
+    margin: 0;
+}
+
+.attachbox-table li:hover {
+    background-color: #eef9ff;
+}
+
+
+/* 选择 */
+
+.flat {
+    appearance: none;
+    -webkit-appearance: none;
+    outline: none;
+    display: none;
+}
+
+.flat+i {
+    display: inline-block;
+    color: #d2d6de;
+    margin-right: 6px;
+}
+
+.flat:checked+i {
+    color: #0073b7;
+}
+
+.attachbox-view {
+    position: absolute;
+    top: 12px;
+    right: 20px;
+    font-size: 13px;
+}
+
+.attachbox-view a {
+    display: inline-block;
+    margin: 0 10px;
+}
+
+
+/* toolbar */
+
+.attach-box-toolbar {
+    position: relative;
+    width: 100%;
+    height: 40px;
+    padding: 10px;
+    border-top: 1px solid #f4f4f4;
+}

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+    <title>三维漫游</title>
+    <link href="../Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+    <link rel="stylesheet" href="../layui/css/layui.css"  media="all">
+    <link href="./css/pretty.css" rel="stylesheet">
+    <script src="./js/jquery.min.js"></script>
+    <script src="./js/config.js"></script>
+	<script type="text/javascript" src="./js/require.min.js" data-main="js/main"></script>
+	<script src="../layui/layui.js" charset="utf-8"></script>
+    <style>
+        html, body, #cesiumContainer {
+            width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden;background-color: #000000;
+        }
+    </style>
+</head>
+<body>
+<div id="cesiumContainer"></div>
+<div id='loadingbar' class="spinner">
+    <div class="spinner-container container1">
+        <div class="circle1"></div>
+        <div class="circle2"></div>
+        <div class="circle3"></div>
+        <div class="circle4"></div>
+    </div>
+    <div class="spinner-container container2">
+        <div class="circle1"></div>
+        <div class="circle2"></div>
+        <div class="circle3"></div>
+        <div class="circle4"></div>
+    </div>
+    <div class="spinner-container container3">
+        <div class="circle1"></div>
+        <div class="circle2"></div>
+        <div class="circle3"></div>
+        <div class="circle4"></div>
+    </div>
+</div>
+<div id='toolbar_fly' style="position : absolute;left : 15px; top : 15px;display: none;" >
+    <button  id="play" class="layui-btn layui-btn-normal layui-btn-radius" style="width:100px" >开始</button>
+    <button  id="pause" class="layui-btn layui-btn-warm layui-btn-radius" style="width:100px">暂停</button>
+    <button  id="stop" class="layui-btn layui-btn-danger layui-btn-radius" style="width:100px">停止</button>
+	
+	
+</div>
+<script type="text/javascript">
+    var viewer;
+    var host = document.location.toString().match(/file:\/\//)?"http://localhost:8090":'http://' + document.location.host;
+    function onload(Cesium) {
+        //初始化viewer部件
+        viewer = new Cesium.Viewer('cesiumContainer');
+        var scene = viewer.scene;
+        var widget = viewer.cesiumWidget;
+        $('#loadingbar').remove();
+        try{
+        	var WenLiYaSuo = scene.addS3MTilesLayerByScp(URL_CONFIG.WenLiYaSuo,{name : 'WenLiYaSuo'});            
+            var promiseSet = [WenLiYaSuo];
+            Cesium.when.all(promiseSet,function(layer){
+           		 for(var i=0;i<layer.length;i++){
+            		layer[i]._lodRangeScale = 0.1;
+            	}
+            	//alert(layer.length);
+            	//设置相机位置，定位至模型
+                scene.camera.setView({
+                    //将经度、纬度、高度的坐标转换为笛卡尔坐标
+                    destination : Cesium.Cartesian3.fromDegrees(120.674488,36.390801,979.666512),
+                    orientation : {
+                        heading : 213.649331*(3.14/180),
+                        pitch : (-37.678893)*(3.14/180),
+                        roll :0.0
+                    }
+                });             
+	            //飞行控制
+			 	var routes = new Cesium.RouteCollection();
+		    	//添加fpf飞行文件，fpf由SuperMap iDesktop生成
+		    	var fpfUrl = './SampleData/fpf/qingdaomodel.fpf';
+		    	routes.fromFile(fpfUrl);
+			    //初始化飞行管理
+			    flyManager = new Cesium.FlyManager({
+			        scene : scene,
+			        routes : routes
+			    });
+		     	flyManager.speed = 50;  	     	
+            });
+        }
+        catch(e){
+            if (widget._showRenderLoopErrors) {
+                var title = '渲染时发生错误，已停止渲染。';
+                widget.showErrorPanel(title, undefined, e);
+            }
+        }
+       
+	        $('#play').click(function(){	       		
+		        flyManager && flyManager.play();
+		 	   });
+		    $('#pause').click(function(){
+		        flyManager && flyManager.pause();
+		    });
+		    $('#stop').click(function(){
+		        flyManager && flyManager.stop();
+		    });
+	        $('#toolbar_fly').show(); 
+    }
+
+    </script>
+</body>
+</html>

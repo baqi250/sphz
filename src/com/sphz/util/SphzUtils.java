@@ -1,0 +1,189 @@
+package com.sphz.util;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+
+import com.sphz.service.sphz.FileManager;
+import com.sphz.service.sphz.SphzFileManager;
+import com.sphz.service.system.dictionaries.DictionariesManager;
+
+public class SphzUtils {
+	
+	public PageData checkEditType(PageData pd, String EDIT_TYPE){
+		if("1".equals(EDIT_TYPE)){
+			pd.put("STATUS",1);
+		}else{
+			pd.put("STATUS",5);
+		}
+		return pd;
+	}
+	
+	public static PageData extractProjInfo(FilePageData pd){
+		PageData pdProj=new PageData();//存放项目信息表
+		pdProj.put("PROJ_KEY",pd.getString("PROJ_KEY"));
+		pdProj.put("PROJ_NO",pd.getString("PROJ_NO"));
+		pdProj.put("PROJ_NAME",pd.getString("PROJ_NAME"));
+		pdProj.put("PROJ_POSITION",pd.getString("PROJ_POSITION"));
+		pdProj.put("PROJ_JSDW",pd.getString("PROJ_JSDW"));
+		pdProj.put("PROJ_SSQH",pd.getString("PROJ_SSQH"));
+		pdProj.put("PROJ_GHYDXZ",pd.getString("PROJ_GHYDXZ"));
+		pdProj.put("PROJ_SFHHYD",pd.getString("PROJ_SFHHYD"));
+		pdProj.put("PROJ_HHBL",pd.getString("PROJ_HHBL"));
+		pdProj.put("PROJ_JZWSYXZ",pd.getString("PROJ_JZWSYXZ"));
+		pdProj.put("PROJ_BZ",pd.getString("PROJ_BZ"));
+		return pdProj;
+		
+	}
+	
+	public static FilePageData addStatusInfo(FilePageData pd){
+		String action=pd.getString("ACTION");
+		if(action.equals("0")){
+			pd.put("STATUS",1);
+		}
+		if(action.equals("1")){
+			pd.put("STATUS",3);
+		}
+		if(action.equals("2")){
+			pd.put("STATUS",2);
+		}
+		pd.remove("ACTION");
+		return pd;
+	}
+	
+	public static void uploadFile(HttpServletRequest request,String businessId,String fileParamName,String ftpBasePath,int fileType,SphzFileManager fileService) throws Exception{
+		Map<String, Object> propsMap = FtpUtils.getFtpProperties();
+		String hostname = (String) propsMap.get("host");
+		int port = Integer.parseInt((String) propsMap.get("port"));
+		String username = (String) propsMap.get("username");
+		String password = (String) propsMap.get("password");
+		//添加文件
+		MultipartHttpServletRequest multipartRequest =     (MultipartHttpServletRequest) request;
+		MultipartFile file = multipartRequest.getFile(fileParamName);
+		String fileName = "";
+		PageData pdfile=new PageData();
+		if (file==null||file.getSize() == 0) {
+
+		} else {
+			InputStream inStream = null;
+			inStream = file.getInputStream();
+			// String basePath="message";//设置服务器中文件保存的根目录
+			String basePath = (String) propsMap.get(ftpBasePath);// 设置服务器中文件保存的根目录
+			//Date now = new Date();
+			//SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+			//String filePath = dateFormat.format(now); // 根据当前时间设置文件保存的子目录
+			//basePath += "/" + filePath + "/" + bsnum;
+			basePath += "/" + businessId;
+			fileName = file.getOriginalFilename();
+
+			pdfile.put("FILE_ID", UuidUtil.get32UUID());
+			pdfile.put("FILE_NAME", fileName);
+			pdfile.put("FILE_PATH", basePath);
+			pdfile.put("BUSINESS_ID", businessId);
+			pdfile.put("FILE_TYPE", fileType);
+			pdfile.put("CREATE_TIME", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+			//pd.put("picture_url", basePath + "/" + fileName);
+			//根据文号唯一码查询原先是否有关联的红线文件，如果没有则新增，如果有则删除后再上传，数据库则update
+			//pdfile.put("BUSINESS_ID", bsnum);
+			PageData pdResult = fileService.findByBusinessId(pdfile);
+			if(null==pdResult){
+				FtpUtils.uploadFile(hostname, port, username, password, basePath, fileName, inStream);
+				fileService.save(pdfile);
+			}else{
+				FtpUtils.deleteFile(hostname, port, username, password, pdResult.getString("FILE_PATH"), pdResult.getString("FILE_NAME"));
+				FtpUtils.uploadFile(hostname, port, username, password, basePath, fileName, inStream);
+				fileService.edit(pdfile);
+			}
+			
+		}
+		
+	}
+	
+	
+	
+	public static List<Map<String, Object>> projLeftJoinDic(DictionariesManager dictionariesService,List<Map<String, Object>> projList){
+		PageData pdDic=new PageData();
+		PageData pdResult=new PageData();
+		List<Map<String, Object>> projList1=new ArrayList<Map<String,Object>>();
+		try {
+			for(int i=0;i<projList.size();i++){
+				Map<String,Object> proj=projList.get(i);
+				leftJoinDic(proj, pdDic, pdResult, dictionariesService, "PROJ_SSQH", "PROJ_SSQH_NAME");
+				leftJoinDic(proj, pdDic, pdResult, dictionariesService, "PROJ_JZWSYXZ", "PROJ_JZWSYXZ_NAME");
+				leftJoinDic(proj, pdDic, pdResult, dictionariesService, "PROJ_GHYDXZ", "PROJ_GHYDXZ_NAME");
+				leftJoinDic(proj, pdDic, pdResult, dictionariesService, "PROJ_SFHHYD", "PROJ_SFHHYD_NAME");
+				projList1.add(proj);
+			}
+			return projList1;
+		} catch (Exception e) {
+			return null;
+		}
+		
+	}
+	
+	public static List<Map<String, Object>> fawenLeftJoinDic(DictionariesManager dictionariesService,List<Map<String, Object>> fawenList){
+		PageData pdDic=new PageData();
+		PageData pdResult=new PageData();
+		List<Map<String, Object>> fawenList1=new ArrayList<Map<String,Object>>();
+		try {
+			for(int i=0;i<fawenList.size();i++){
+				Map<String,Object> fawen=fawenList.get(i);
+				leftJoinDic(fawen, pdDic, pdResult, dictionariesService, "FWLXID", "FWLXID_NAME");
+				leftJoinDic(fawen, pdDic, pdResult, dictionariesService, "SBLX", "SBLX_NAME");
+				leftJoinDic(fawen, pdDic, pdResult, dictionariesService, "SPJD", "SPJD_NAME");
+				leftJoinDic(fawen, pdDic, pdResult, dictionariesService, "GCLB", "GCLB_NAME");
+				leftJoinDic(fawen, pdDic, pdResult, dictionariesService, "XMLX", "XMLX_NAME");
+				leftJoinDic(fawen, pdDic, pdResult, dictionariesService, "CBBM", "CBBM_NAME");
+				leftJoinDic(fawen, pdDic, pdResult, dictionariesService, "FWLX", "FWLX_NAME");
+				leftJoinDic(fawen, pdDic, pdResult, dictionariesService, "GHYDXZ", "GHYDXZ_NAME");
+				leftJoinDic(fawen, pdDic, pdResult, dictionariesService, "HHYDXZ", "HHYDXZ_NAME");
+				leftJoinDic(fawen, pdDic, pdResult, dictionariesService, "DALY", "DALY_NAME");
+				leftJoinDic(fawen, pdDic, pdResult, dictionariesService, "SHZT", "SHZT_NAME");
+				leftJoinDic(fawen, pdDic, pdResult, dictionariesService, "DLDJ", "DLDJ_NAME");
+				leftJoinDic(fawen, pdDic, pdResult, dictionariesService, "DMXS", "DMXS_NAME");
+				leftJoinDic(fawen, pdDic, pdResult, dictionariesService, "GXLX", "GXLX_NAME");
+				leftJoinDic(fawen, pdDic, pdResult, dictionariesService, "TZGLLX", "TZGLLX_NAME");
+				leftJoinDic(fawen, pdDic, pdResult, dictionariesService, "TDSYLX", "TDSYLX_NAME");
+				leftJoinDic(fawen, pdDic, pdResult, dictionariesService, "JZWSYXZ", "JZWSYXZ_NAME");
+				leftJoinDic(fawen, pdDic, pdResult, dictionariesService, "DLLX", "DLLX_NAME");
+				leftJoinDic(fawen, pdDic, pdResult, dictionariesService, "JZWSYXZ", "JZWSYXZ_NAME");
+				fawenList1.add(fawen);
+			}
+			return fawenList1;
+		} catch (Exception e) {
+			return null;
+		}
+		
+	}
+	
+	public static void leftJoinDic(Map<String,Object> fawen,PageData pdDic,PageData pdResult,DictionariesManager dictionariesService,String key,String keyName){
+		try {
+			String v=(String) fawen.get(key);
+			if(null==v){
+				
+			}else{
+				pdDic.put("DICTIONARIES_ID", v);
+				pdResult = dictionariesService.findById(pdDic);
+				if(null!=pdResult){
+					fawen.put(keyName, pdResult.get("NAME"));
+				}else{
+					fawen.put(keyName,v);
+				}
+			}
+		} catch (Exception e) {
+			
+		}
+		
+	}
+	
+}

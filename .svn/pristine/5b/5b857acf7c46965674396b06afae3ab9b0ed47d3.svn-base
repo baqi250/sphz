@@ -1,0 +1,12 @@
+.login-box-body form .form-group,
+.register-box-body form .form-group {
+    margin: 15px 0;
+}
+
+.login-footer {
+    margin: 30px 0 0;
+}
+
+.login-footer .login-register {
+    text-align: right;
+}

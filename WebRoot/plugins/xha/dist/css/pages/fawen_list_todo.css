@@ -1,0 +1,16 @@
+.jbbmDiv{
+	width:150px !important;	
+}
+.keyDiv{
+	width:350px !important;
+}
+.timeDiv{
+	width:100px !important;
+}
+
+.btn-block+.btn-block {
+    margin-top: 0px !important; 
+}
+
+
+

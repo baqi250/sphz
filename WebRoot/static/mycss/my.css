@@ -1,0 +1,312 @@
+.Form {
+	border-left: #148e9c solid 1px;
+	border-bottom: #148e9c solid 1px;
+	border-right: #148e9c solid 1px; 
+}
+
+.headcontainer {
+	margin: 27px 0 27px 30px;
+	height: 32px;
+	/*border-top: #148e9c solid 1px;
+	margin-top: 5px;
+	border-bottom: #148e9c solid 2px;
+	background: rgba(0, 0, 0, 0.5);*/
+	display: block;
+	position: relative;
+}
+
+.sometioajian {
+	height: 100%;
+	width: 100%;
+	margin: auto;
+	position: absolute;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	right: 0;
+}
+
+.serach {
+	height: 100%;
+	position: absolute;
+	top: 0;
+}
+
+.add and del {
+	height: 32px;
+	width: 226px;
+	background-color: transparent;
+	position: absolute;
+	top: 0;
+	right: 0;
+}
+
+.add {
+	text-align: center;
+	folat: left;
+	height: 32px;
+	width: 90px;
+	background-color: #148e9c;
+	position: absolute;
+	top: 0;
+}
+
+.del {
+	text-align: center;
+	background-color: #148e9c;
+	position: absolute;
+	top: 0;
+	right: 20px;
+}
+
+.tableinnertext {
+	color: #148e9c;
+	text-decoration: underline;
+}
+
+.table-report>tbody>tr>td {
+	border: 1px solid #11323f;
+	opacity: 0.3;
+	color: #d0faff;
+	font-size: 14px;
+}
+/*lzz add*/
+.search_btn {
+	vertical-align: middle;
+	background-color: #349ef4;
+	width: auto;
+	height: 32px;
+	border: none;
+	text-decoration: none;
+	color: #fff;
+	min-width:70px;
+}
+
+.search_btn:hover {
+	background-color: #245783;
+	color: #fff;
+}
+
+.tableSet {
+	margin-top: 20px;
+	margin-left: 30px;
+	margin-bottom: 10px;
+}
+
+.addBtn, .delBtn, .addBtnInfo {
+	color: #349ef3;
+	background-size: 14px 14px;
+	width: 77px;
+	height: 30px;
+	border: none;
+	padding-left: 25px;
+	float: right;
+}
+
+.addBtn {
+	background: url(../../static/ace/img/add.png) no-repeat #e5e5e5 15px
+		center;
+}
+
+.addBtnInfo {
+	background: url(../../static/ace/img/add.png) no-repeat 15px center;
+	border: 1px solid #349ef3;
+	margin: 16px 53px 16px 70px;
+	float: none !important;
+}
+
+.addBtnInfo:hover {
+	background: url(../../static/ace/img/add_h.png) no-repeat #349ef3 15px
+		center;
+	color: #fff;
+}
+
+.delBtn {
+	background: url(../../static/ace/img/del.png) no-repeat #e5e5e5 15px
+		center;
+}
+
+.addBtn:hover {
+	background: url(../../static/ace/img/add_h.png) no-repeat #349ef3 15px
+		center;
+	color: #fff;
+}
+
+.delBtn:hover {
+	background: url(../../static/ace/img/del_h.png) no-repeat #349ef3 15px
+		center;
+	color: #fff;
+}
+
+.addBtnS {
+	width: 100%;
+	height: 30px;
+	margin: 16px 0 16px 30px;
+}
+
+.addBtnJZ {
+	color: #349ef3;
+	background-size: 14px 14px;
+	width: 77px;
+	height: 30px;
+	border: 1px solid #349ef3;
+	padding-left: 25px;
+	float: right;
+	background: url(../../static/ace/img/add.png) no-repeat 15px center;
+}
+
+.mr {
+	margin-right: 2px;
+}
+
+.hSet {
+	height: 28px;
+}
+
+.editBtn, .deleBtn, .viewBtn, .submitBtn, .notAgreeBtn, .okBtn,.qrcodeBtn {
+	background-size: 36px 36px;
+	width: 36px;
+	height: 36px;
+	float: left;
+}
+.okBtn {
+	background: url(../../static/images/ok.png) no-repeat;
+}
+
+.okBtn:hover {
+	background: url(../../static/images/ok_hover.png) no-repeat;
+}
+
+.notAgreeBtn {
+	background: url(../../static/images/notagree.png) no-repeat;
+}
+
+.notAgreeBtn:hover {
+	background: url(../../static/images/notagree_hover.png) no-repeat;
+}
+
+.submitBtn {
+	background: url(../../static/images/submit.png) no-repeat;
+}
+
+.submitBtn:hover {
+	background: url(../../static/images/submit_hover.png) no-repeat;
+}
+
+.qrcodeBtn {
+	background: url(../../static/images/qrcode.png) no-repeat;
+}
+
+.qrcodeBtn:hover {
+	background: url(../../static/images/qrcode_hover.png) no-repeat;
+}
+
+.viewBtn {
+	background: url(../../static/images/view.png) no-repeat;
+}
+
+.viewBtn:hover {
+	background: url(../../static/images/view_hover.png) no-repeat;
+}
+
+.editBtn {
+	background: url(../../static/ace/img/edit.png) no-repeat;
+}
+
+.editBtn:hover {
+	background: url(../../static/ace/img/edit_h.png) no-repeat;
+}
+
+.deleBtn {
+	background: url(../../static/ace/img/dele.png) no-repeat;
+}
+
+.deleBtn:hover {
+	background: url(../../static/ace/img/dele_h.png) no-repeat;
+}
+
+
+.memoSet {
+	width: 300px;
+	height: 100%;
+	background-color: white;
+	border-right: 1px solid #ddd;
+	padding: 30px 0 0 26px;
+	line-height: 36px;
+	font-size: 14px;
+	color: #222222;
+}
+.info {
+	height: 40px;
+	background-color: #349ef4;
+	color: #fff;
+	font-size: 16px;
+	/*font-family:"Microsoft YaHei","΢���ź�";*/
+	padding-left: 20px;
+	padding-top: 10px;
+}
+
+.ht {
+	height: 100%;
+}
+
+.info1 {
+	height: 100%;
+	width: 200px;
+	padding: 0px;
+	margin-right:10px;
+}
+
+.info1_1 {
+	background-color: white;
+	height: 100%;
+}
+
+.infoMemo {
+	height: 40px;
+	background-color: #349ef4;
+	color: #fff;
+	font-size: 16px;
+	/*font-family:"Microsoft YaHei","΢���ź�";*/
+	padding-left: 20px;
+	padding-top: 10px;
+}
+
+.aa {
+	height: 38px;
+	width: 265px;
+	padding-left: 20px;
+	line-height: 38px;
+}
+
+.linkA {
+	color: #000;
+	text-decoration: none;
+}
+
+.bw {
+	background: #fff;
+}
+.dateSear{
+	width:auto;
+	height:100%;
+	float:left;
+	margin-right:8px;
+	color:black;
+}
+.btnSear{
+	width:auto;
+	height:100%;
+	float:left;
+}
+.mr{
+	margin-right:8px;
+}
+.fr{
+	float:right;
+	margin-right:14px;
+}
+.bgHid {
+	background-color: #ddd;
+	overflow: hidden;
+}

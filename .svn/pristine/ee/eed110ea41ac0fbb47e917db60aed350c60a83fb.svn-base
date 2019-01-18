@@ -1,0 +1,13 @@
+.map-container {
+    width: 100%;
+    height: 675px;
+}
+
+.map-container #map {
+    width: 100%;
+    height: 100%;
+    background-image: url(KGDT.png);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+}

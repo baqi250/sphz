@@ -1,0 +1,240 @@
+package com.sphz.service.system.dictionaries.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+
+import com.sphz.dao.DaoSupport;
+import com.sphz.entity.Page;
+import com.sphz.entity.system.Department;
+import com.sphz.entity.system.DicTreeSelect;
+import com.sphz.entity.system.Dictionaries;
+import com.sphz.entity.system.Menu;
+import com.sphz.service.system.dictionaries.DictionariesManager;
+import com.sphz.util.PageData;
+
+
+/** 
+ * 说明： 数据字典
+ * 创建人：DK
+ * 创建时间：2015-12-16
+ * @version
+ */
+@Service("dictionariesService")
+public class DictionariesService implements DictionariesManager{
+
+	@Resource(name = "daoSupport")
+	private DaoSupport dao;
+	
+	/**新增
+	 * @param pd
+	 * @throws Exception
+	 */
+	@Override
+	public void save(PageData pd)throws Exception{
+		dao.save("DictionariesMapper.save", pd);
+	}
+	
+	/**删除
+	 * @param pd
+	 * @throws Exception
+	 */
+	@Override
+	public void delete(PageData pd)throws Exception{
+		dao.delete("DictionariesMapper.delete", pd);
+	}
+	
+	/**修改
+	 * @param pd
+	 * @throws Exception
+	 */
+	@Override
+	public void edit(PageData pd)throws Exception{
+		dao.update("DictionariesMapper.edit", pd);
+	}
+	
+	/**列表
+	 * @param page
+	 * @throws Exception
+	 */
+	@Override
+	@SuppressWarnings("unchecked")
+	public List<PageData> list(Page page)throws Exception{
+		return (List<PageData>)dao.findForList("DictionariesMapper.datalistPage", page);
+	}
+	
+	/**通过id获取数据
+	 * @param pd
+	 * @throws Exception
+	 */
+	@Override
+	public PageData findById(PageData pd)throws Exception{
+		return (PageData)dao.findForObject("DictionariesMapper.findById", pd);
+	}
+	
+	/**通过编码获取数据
+	 * @param pd
+	 * @throws Exception
+	 */
+	@Override
+	public PageData findByBianma(PageData pd)throws Exception{
+		return (PageData)dao.findForObject("DictionariesMapper.findByBianma", pd);
+	}
+	
+	/**
+	 * 通过ID获取其子级列表
+	 * @param parentId
+	 * @return
+	 * @throws Exception
+	 */
+	@Override
+	@SuppressWarnings("unchecked")
+	public List<Dictionaries> listSubDictByParentId(String parentId) throws Exception {
+		return (List<Dictionaries>) dao.findForList("DictionariesMapper.listSubDictByParentId", parentId);
+	}
+	
+	/**
+	 * 获取所有数据并填充每条数据的子级列表(递归处理)
+	 * @param MENU_ID
+	 * @return
+	 * @throws Exception
+	 */
+	@Override
+	public List<Dictionaries> listAllDict(String parentId) throws Exception {
+		List<Dictionaries> dictList = this.listSubDictByParentId(parentId);
+		for(Dictionaries dict : dictList){
+			dict.setTreeurl("dictionaries/list.do?DICTIONARIES_ID="+dict.getDICTIONARIES_ID());
+			dict.setSubDict(this.listAllDict(dict.getDICTIONARIES_ID()));
+			dict.setTarget("treeFrame");
+		}
+		return dictList;
+	}
+	
+	/**
+	 * 获取所有数据并填充每条数据的子级列表(递归处理)用于代码生成器引用数据字典
+	 * @param MENU_ID
+	 * @return
+	 * @throws Exception
+	 */
+	@Override
+	public List<Dictionaries> listAllDictToCreateCode(String parentId) throws Exception {
+		List<Dictionaries> dictList = this.listSubDictByParentId(parentId);
+		for(Dictionaries dict : dictList){
+			dict.setTreeurl("javascript:setDID(\""+dict.getDICTIONARIES_ID()+"\");");
+			dict.setSubDict(this.listAllDictToCreateCode(dict.getDICTIONARIES_ID()));
+			dict.setTarget("treeFrame");
+		}
+		return dictList;
+	}
+	
+	/**排查表检查是否被占用
+	 * @param pd
+	 * @throws Exception
+	 */
+	@Override
+	public PageData findFromTbs(PageData pd)throws Exception{
+		return (PageData)dao.findForObject("DictionariesMapper.findFromTbs", pd);
+	}
+
+	/**
+	 * 通过编码获取其子级列表
+	 * @param pd
+	 * @return
+	 */
+	@Override
+	@SuppressWarnings("unchecked")
+	public List<Dictionaries> listAllItemsByCodeValue(PageData pd) throws Exception {
+		return (List<Dictionaries>) dao.findForList("DictionariesMapper.listAllItemsByCodeValue", pd);
+	}
+	
+	/**
+	 * 通过编码获取列表
+	 * @param pd
+	 * @return
+	 */
+	@Override
+	@SuppressWarnings("unchecked")
+	public List<Dictionaries> listItemsByBianma(PageData pd) throws Exception {
+		return (List<Dictionaries>) dao.findForList("DictionariesMapper.listItemsByBianma", pd);
+	}
+	
+	/**
+	 * 获取所有数据并填充每条数据的子级列表(递归处理)下拉ztree用
+	 * @param MENU_ID
+	 * @return
+	 * @throws Exception
+	 */
+	@Override
+	public List<PageData> listAllDictsToSelect(String parentId,List<PageData> zdictPdList) throws Exception {
+		List<PageData>[] arrayDict = this.listAllbyPd(parentId,zdictPdList);
+		List<PageData> dictPdList = arrayDict[1];
+		for(PageData pd : dictPdList){
+			this.listAllDictsToSelect(pd.getString("id"),arrayDict[0]);
+		}
+		return arrayDict[0];
+	}
+	
+	/**下拉ztree用
+	 * @param parentId
+	 * @return
+	 * @throws Exception
+	 */
+	@SuppressWarnings("unchecked")
+	public List<PageData>[] listAllbyPd(String parentId,List<PageData> zdictPdList) throws Exception {
+		List<Dictionaries> dictList = this.listSubDictByParentId(parentId);
+		List<PageData> dictPdList = new ArrayList<PageData>();
+		for(Dictionaries dict : dictList){
+			PageData pd = new PageData();
+			pd.put("id", dict.getDICTIONARIES_ID());
+			pd.put("parentId", dict.getPARENT_ID());
+			pd.put("name", dict.getNAME());
+			//pd.put("icon", "static/images/user.gif");
+			dictPdList.add(pd);
+			zdictPdList.add(pd);
+		}
+		List<PageData>[] arrayDict = new List[2];
+		arrayDict[0] = zdictPdList;
+		arrayDict[1] = dictPdList;
+		return arrayDict;
+	}
+	
+	/**
+	 * 根据字典项id获取子数据字典
+	 * @param parent_id
+	 * @return
+	 * @throws Exception
+	 */
+	@Override
+	@SuppressWarnings("unchecked")
+	public List<DicTreeSelect> listSubDicTreeByParentId(String parentId) throws Exception {
+		return (List<DicTreeSelect>) dao.findForList("DictionariesMapper.listSubDicTreeByParentId", parentId);
+	}
+	
+	/**
+	 * 获取字典项的所有子字典项，用于下拉树选择框（递归）
+	 * @param parent_id
+	 * @return
+	 * @throws Exception
+	 */
+	public List<DicTreeSelect> listAllDicTreeSelect(String dic_id) throws Exception {
+		List<DicTreeSelect> dicTreeSelectList = this.listSubDicTreeByParentId(dic_id);
+		for(DicTreeSelect dicTreeSelect : dicTreeSelectList){
+			dicTreeSelect.setSubDic(this.listAllDicTreeSelect(dicTreeSelect.getDICTIONARIES_ID()));
+		}
+		return dicTreeSelectList;
+	}
+	
+	/**通过ids获取英文名称
+	 * @param page
+	 * @throws Exception
+	 */
+	@Override
+	@SuppressWarnings("unchecked")
+	public List<PageData> getNameEnByIds(String[] ids)throws Exception{
+		return (List<PageData>)dao.findForList("DictionariesMapper.getNameEnByIds", ids);
+	}
+}
+

@@ -1,0 +1,1408 @@
+﻿<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%
+	String path = request.getContextPath();
+	String basePath = request.getScheme() + "://"
+			+ request.getServerName() + ":" + request.getServerPort()
+			+ path + "/";
+%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<base href="<%=basePath%>">
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>蓝谷规划信息平台</title>
+<!-- Tell the browser to be responsive to screen width -->
+<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+<link rel="stylesheet" href="plugins/xha/plugins/bootstrap/dist/css/bootstrap.css">
+<!-- Font Awesome -->
+<link rel="stylesheet" href="plugins/xha/plugins/font-awesome/css/font-awesome.min.css">
+<!-- Ionicons -->
+<link rel="stylesheet" href="plugins/xha/plugins/Ionicons/css/ionicons.min.css">
+<!-- bootstrap datepicker -->
+<link rel="stylesheet" href="plugins/xha/plugins/bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css">
+<!-- iCheck for checkboxes and radio inputs -->
+<link rel="stylesheet" href="plugins/xha/plugins/iCheck/all.css">
+<!-- Select2 -->
+<link rel="stylesheet" href="plugins/xha/plugins/select2/dist/css/select2.min.css">
+<link rel="stylesheet" href="plugins/xha/plugins/select2/totree/select2totree.css">
+<!-- Theme style -->
+<link rel="stylesheet" href="plugins/xha/dist/css/AdminLTE.css">
+<!-- AdminLTE Skins. 色调更改 -->
+<link rel="stylesheet" href="plugins/xha/dist/css/skins/skin-blue.min.css">
+
+<!-- Custom CSS -->
+<link rel="stylesheet" href="plugins/xha/dist/css/pages/index.css">
+<link rel="stylesheet" href="plugins/xha/plugins/layer/theme/default/layer.css">
+
+<!-- 树形下拉框start -->
+
+  <script src="plugins/xha/plugins/jquery/dist/jquery.min.js"></script>
+ <!--  <script type="text/javascript" src="static/js/jquery-1.7.2.js"></script>
+  	<script type="text/javascript" src="plugins/selectZtree/selectTree.js"></script>
+	<script type="text/javascript" src="plugins/selectZtree/framework.js"></script>
+	<link rel="stylesheet" type="text/css" href="plugins/selectZtree/import_fh.css"/>
+	<script type="text/javascript" src="plugins/selectZtree/ztree/ztree.js"></script>
+	<link type="text/css" rel="stylesheet" href="plugins/selectZtree/ztree/ztree.css"></link> -->
+   
+<!-- 树形下拉框end -->
+
+</head>
+<body class="hold-transition skin-blue sidebar-mini">
+<!-- <div id="container"> -->
+	   <!-- Content Wrapper. Contains page content -->
+        <div class="content-wrapper1">
+        
+        
+            <!-- Content Header (Page header) -->
+    <!--         <section class="content-header">
+               
+            </section> -->
+
+            <!-- Main content -->
+            <section class="content container-fluid">
+                <!-- 申报类型 -->
+                <div class="box box-primary">
+                    <div class="box-header with-border">
+                        <h3 class="box-title text-blue box-select-title">发文类型</h3>
+
+                        <div class="box-select">
+                            <select id="FWLXID" class="form-control select2" onchange="changeStage()" style="width: 100%;">
+							    <option selected="selected" value="选址、条件">选址、条件</option>
+                                <option value="用地">用地</option>
+                                <option value="建设许可（建筑工程）">建设许可（建筑工程）</option>
+                                <option value="建设许可（市政道桥）">建设许可（市政道桥）</option>
+                                <option value="建设许可（市政管线）">建设许可（市政管线）</option>
+                                <option value="竣工（建筑工程）">竣工（建筑工程）</option>
+                                <option value="竣工（市政道桥）">竣工（市政道桥）</option>
+                                <option value="竣工（市政管线）">竣工（市政管线）</option>
+                            </select>
+                        </div>
+                        <div style="width:5%;display:inline-block;margin-left:10px;">
+                        	<button type="button" id="save" class="btn btn-block btn-primary btn-sm" data-widget=""><i class="fa fa-check"></i> 保存</button>
+                        </div>
+                    </div>
+                </div>
+				<form role="form" action="sphz/fawen/save.do" name="addForm" id="addForm" method="post">
+				<%-- <input type="hidden" name="LAND_USE" id="LAND_USE" value="${pd.LAND_USE }" /> --%>
+				<!-- <form role="form" action="sphz/add.do" name="addForm" id="addForm" method="post"> -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <!-- 报建信息 -->
+                        <div class="box box-warning">
+                            <div class="box-header with-border">
+                                <h3 class="box-title text-yellow">报建信息</h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" id="searchProj" class="btn btn-warning btn-xs" data-widget=""><i class="fa fa-search"></i> 搜索</button>
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <div class="box-body">
+                            	<div class="row">
+									<div class="col-lg-6">
+										<div class="form-group">
+			                                <label for="">项目唯一码</label>
+			                                <input type="text" id="XMWYM" name="XMWYM" value="${pd.XMWYM }" class="form-control" onblur="check(this.value);" placeholder="必填项（*）">
+			                            </div>
+									</div>
+									<div class="col-lg-6">
+										<div class="form-group">
+			                                <label for="">所属项目唯一码</label>
+			                                <input type="text" id="SSXMWYM" name="SSXMWYM" value="${pd.SSXMWYM }" class="form-control">
+			                            </div>
+									</div>
+								</div>
+								
+								<div class="row">
+									<div class="col-lg-6">
+									    <div class="form-group">
+			                                <label for="">项目编号</label>
+			                                <input type="text" id="XMBH" name="XMBH" value="${pd.XMBH }" class="form-control">
+			                            </div>
+									</div>
+									<div class="col-lg-6">
+										<div class="form-group">
+			                                <label for="">项目属地</label>
+			                                <div class="box-select">
+												<select id=XMSD name="XMSD" class="form-control select2"
+													style="width: 100%;">
+													<option selected="selected" value=""></option>
+													<c:forEach items="${xmsdList}" var="item">
+														<option value="${item.NAME }"
+															<c:if test="${item.NAME == pd.XMSD }">selected</c:if>>${item.NAME }</option>
+													</c:forEach>
+												</select>
+											</div>
+			                            </div>
+									</div>
+								</div>
+								
+							 	<div class="row">
+									<div class="col-lg-6">
+										<div class="form-group">
+			                                <label for="">项目名称</label>
+			                                <input type="text" id="XMMC" name="XMMC" value="${pd.XMMC }" class="form-control" placeholder="必填项（*）">
+			                            </div>
+									</div>
+									<div class="col-lg-6">
+										<div class="form-group">
+			                                <label for="">项目位置</label>
+			                                <input type="text" id="XMWZ" name="XMWZ" value="${pd.XMWZ }" class="form-control">
+			                            </div>
+									</div>
+								</div>
+	                          
+	                           <div class="row">
+									<div class="col-lg-6">
+										<div class="form-group">
+			                                <label for="">建设单位</label>
+			                                <input type="text" id="JSDW" name="JSDW" value="${pd.JSDW }" class="form-control">
+			                            </div>
+									</div>
+									<div class="col-lg-6">
+										<div class="form-group">
+			                                <label for="">组织机构代码证</label>
+			                                <input type="text" id="ZZJGDMZ" name="ZZJGDMZ" value="${pd.ZZJGDMZ }" class="form-control">
+			                            </div>
+									</div>
+								</div>
+	                          
+	                            
+	                           <div class="row">
+									<div class="col-lg-6">
+										<div class="form-group">
+			                                <label for="">建设规模</label>
+			                                <input type="text" id="JSGM" name="JSGM" value="${pd.JSGM }" class="form-control">
+			                            </div>
+									</div>
+									<div class="col-lg-6">
+										<div class="form-group">
+			                                <label for="">总投资</label>
+			                                <input type="text" id="ZTZ" name="ZTZ" value="${pd.ZTZ }" class="form-control">
+			                            </div>
+									</div>
+								</div>
+	                            
+	                           
+	                          <div class="row">
+									<div class="col-lg-6">
+										<div class="form-group">
+			                                <label for="">设计单位</label>
+			                                <input type="text" id="SJDW" name="SJDW" value="${pd.SJDW }" class="form-control">
+			                            </div>
+									</div>
+									<div class="col-lg-6">
+										<div class="form-group">
+			                                <label for="">报建人</label>
+			                                <input type="text" id="BJR" name="BJR" value="${pd.BJR }" class="form-control">
+			                            </div>
+									</div>
+								</div>
+	                           
+	                            <div class="row">
+									<div class="col-lg-6">
+										<div class="form-group">
+			                                <label for="">联系方式</label>
+			                                <input type="text" id="LXFS" name="LXFS" value="${pd.LXFS }" class="form-control">
+			                            </div>
+									</div>
+									<div class="col-lg-6">
+									</div>
+								</div>
+                            </div>
+                        </div>
+
+                        <!-- 发文信息 -->
+                        <div class="box box-danger">
+                            <div class="box-header with-border">
+                                <h3 class="box-title text-red">发文信息</h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <div class="box-body">
+                            
+                            	 <div class="row">
+									<div class="col-lg-6">
+										<div class="form-group">
+			                                <label for="">工程类别</label>
+			                                <div class="box-select">
+												<select id=GCLB name="GCLB" class="form-control select2"
+													style="width: 100%;">
+													<option selected="selected" value=""></option>
+													<c:forEach items="${gclbList}" var="item">
+														<option value="${item.NAME }"
+															<c:if test="${item.NAME == pd.GCLB }">selected</c:if>>${item.NAME }</option>
+													</c:forEach>
+												</select>
+											</div>
+			                            </div>
+									</div>
+									<div class="col-lg-6">
+										<div class="form-group">
+			                                <label for="">申办类型</label>
+		                                    <div class="box-select">
+												<select id=SBLX name="SBLX" class="form-control select2"
+													style="width: 100%;">
+													<option selected="selected" value=""></option>
+													<c:forEach items="${sblxList}" var="item">
+														<option value="${item.NAME }"
+															<c:if test="${item.NAME == pd.SBLX }">selected</c:if>>${item.NAME }</option>
+													</c:forEach>
+												</select>
+											</div>
+			                            </div>
+									</div>
+								</div>
+                            
+	                           <div class="row">
+									<div class="col-lg-6">
+										<div class="form-group">
+			                                <label for="">审批阶段</label>
+			                                <div class="box-select">
+												<select id=SPJD name="SPJD" class="form-control select2"
+													style="width: 100%;">
+													<option selected="selected" value=""></option>
+													<c:forEach items="${spjdList}" var="item">
+														<option value="${item.NAME }"
+															<c:if test="${item.NAME == pd.SPJD }">selected</c:if>>${item.NAME }</option>
+													</c:forEach>
+												</select>
+											</div>
+			                            </div>
+									</div>
+									<div class="col-lg-6">
+										<div class="form-group">
+			                                <label for="">发文类型</label>
+			                                <div class="box-select">
+												<select id=FWLX name="FWLX" class="form-control select2"
+													style="width: 100%;">
+													<option selected="selected" value=""></option>
+													<c:forEach items="${fwlxList}" var="item">
+														<option value="${item.NAME }"
+															<c:if test="${item.NAME == pd.FWLX }">selected</c:if>>${item.NAME }</option>
+													</c:forEach>
+												</select>
+											</div>
+			                            </div>
+									</div>
+								</div>
+	                           
+	                            <div class="row">
+									<div class="col-lg-6">
+										<div class="form-group">
+			                                <label for="">发文文号</label>
+			                                <input type="text" id="FWWH" name="FWWH" value="${pd.FWWH }" class="form-control" placeholder="必填项（*）">
+			                            </div>
+									</div>
+									<div class="col-lg-6">
+										<div class="form-group">
+			                                <label for="">发文日期</label>
+			                                <div class="input-group date">
+												<div class="input-group-addon">
+													<i class="fa fa-calendar"></i>
+												</div>
+												<input type="text" name="FWRQ" value="${pd.FWRQ }"
+													class="form-control pull-right datepicker" id="FWRQ" placeholder="必填项（*）">
+											</div>
+			                            </div>
+									</div>
+								</div>
+	                           
+	                            <div class="row">
+									<div class="col-lg-6">
+										<div class="form-group">
+			                                <label for="">证书钢印号</label>
+			                                <input type="text" id="ZSGYH" name="ZSGYH" value="${pd.ZSGYH }" class="form-control">
+			                            </div>
+									</div>
+									<div class="col-lg-6">
+									</div>
+								</div>
+								
+                            </div>
+                        </div>
+                        <!-- 经办信息 -->
+                        <div class="box box-info">
+                            <div class="box-header with-border">
+                                <h3 class="box-title text-light-blue">经办信息</h3>
+
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <div class="box-body">
+                            	<div class="row">
+									<div class="col-lg-6">
+										<div class="form-group">
+				                            <label for="">承办部门</label>
+				                            <input type="text" id="CBBM" name="CBBM" value="${pd.CBBM }" class="form-control">
+			                            </div>
+									</div>
+									<div class="col-lg-6">
+										<div class="form-group">
+				                            <label for="">经办人</label>
+				                            <input type="text" id="JBR" name="JBR" value="${pd.JBR }" class="form-control">
+			                            </div>
+									</div>
+								</div>
+	                           
+                      	      	<div class="row">
+									<div class="col-lg-6">
+										<div class="form-group">
+				                            <label for="">签批人</label>
+				                            <input type="text" id="QPR" name="QPR" value="${pd.QPR }" class="form-control">
+			                            </div>
+									</div>
+									<div class="col-lg-6">
+									</div>
+								</div>
+	                           
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                    	    <!-- 归档信息 -->
+                        <div class="box box-info">
+                            <div class="box-header with-border">
+                                <h3 class="box-title text-light-blue">归档信息</h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <div class="box-body">
+                            
+                            	<div class="row">
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">档案编号</label>
+			                                 <input type="text" id="DABH" name="DABH" value="${pd.DABH }" class="form-control">
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">数字档案号</label>
+			                                 <input type="text" id="SZDAH" name="SFHHYD" value="${pd.SFHHYD }" class="form-control">
+			                             </div>
+									</div>
+								</div>
+								
+                   		  	  	<div class="row">
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">档案盒号</label>
+			                                 <input type="text" id="DAHH" name="DAHH" value="${pd.DAHH }" class="form-control" placeholder="必填项（*）">
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">档案来源</label>
+			                                 <input type="text" id="DALY" name="DALY" value="${pd.DALY }" class="form-control">
+			                             </div>
+									</div>
+								</div>
+	                            
+	                            <div class="row">
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">录入人员</label>
+			                                 <input type="text" id="LRRY" name="LRRY" value="${pd.LRRY }" class="form-control">
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">录入日期</label>
+			                                 <div class="input-group date">
+												<div class="input-group-addon">
+													<i class="fa fa-calendar"></i>
+												</div>
+												<input type="text" name="LRRQ" value="${pd.LRRQ }"
+													class="form-control pull-right datepicker" id="LRRQ">
+											 </div>
+			                             </div>
+									</div>
+								</div>
+	                             
+                                <div class="row">
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">审核人员</label>
+			                                 <input type="text" id="SHRY" name="SHRY" value="${pd.SHRY }" class="form-control">
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+										  <div class="form-group">
+	                                 		 <label for="">审核日期</label>
+	                                 		  <div class="input-group date">
+												<div class="input-group-addon">
+													<i class="fa fa-calendar"></i>
+												</div>
+												<input type="text" name="SHRQ" value="${pd.SHRQ }"
+													class="form-control pull-right datepicker" id="SHRQ">
+											 </div>
+			                              </div>
+									</div>
+								</div>
+	                            
+                             	<div class="row">
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">审核状态</label>
+			                                 <input type="text" id="SHZT" name="SHZT" value="${pd.SHZT }" class="form-control">
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+										 <div class="form-group">
+		                                      <label>备注</label>
+		                                      <textarea id="BZ" name="BZ" class="form-control input-textarea">${pd.BZ }</textarea>
+                                  		 </div>
+									</div>
+								</div>
+	                              
+                        	</div>
+                        </div>
+                        
+                        <!-- 指标信息 -->
+                        <!-- ---            选址、条件                     --- -->
+                        <div class="box box-success infoDiv" id=infoDiv1 style="display: block;">
+                            <div class="box-header with-border">
+                                <h3 class="box-title text-green">指标信息</h3>
+
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <div class="box-body">
+                            
+                            	<div class="row">
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">用地性质</label>
+			                                 <input type="text" id="YDXZ" name="YDXZ" value="${pd.YDXZ }" class="form-control">
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">是否混合用地</label>
+			                                 <div class="box-select">
+												<select id=SFHHYD name="SFHHYD" class="form-control select2"
+													style="width: 100%;">
+													<option selected="selected" value=""></option>
+													<c:forEach items="${sfhhydList}" var="item">
+														<option value="${item.NAME }"
+															<c:if test="${item.NAME == pd.SFHHYD }">selected</c:if>>${item.NAME }</option>
+													</c:forEach>
+												</select>
+											 </div>
+			                             </div>
+									</div>
+								</div>
+								
+	                   		  	<div class="row">
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">混合用地比例</label>
+			                                 <input type="text" id="HHYDBL" name="HHYDBL" value="${pd.HHYDBL }" class="form-control">
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">用地面积</label>
+			                                 <input type="text" id="YDMJ" name="YDMJ" value="${pd.YDMJ }" class="form-control">
+			                             </div>
+									</div>
+								</div>
+	                            
+	                            <div class="row">
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">容积率</label>
+			                                 <input type="text" id="RJL" name="RJL" value="${pd.RJL }" class="form-control">
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">建筑密度</label>
+			                                 <input type="text" id="JZMD" name="JZMD" value="${pd.JZMD }" class="form-control">
+			                             </div>
+									</div>
+								</div>
+	                             
+	                            <div class="row">
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">绿地率</label>
+			                                 <input type="text" id="LDL" name="LDL" value="${pd.LDL }" class="form-control">
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">停车位</label>
+			                                 <input type="text" id="TCW" name="TCW" value="${pd.TCW }" class="form-control">
+			                             </div>
+									</div>
+								</div>
+	                            
+                                <div class="row">
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">控制高度</label>
+			                                 <input type="text" id="KZGD" name="KZGD" value="${pd.KZGD }" class="form-control">
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+									</div>
+								</div>
+	                             
+                        	</div>
+                        </div>
+                        
+                        <!-- ---              用地                                 ---- -->
+                        <div class="box box-success infoDiv unDisDiv" id=infoDiv2 >
+	                        <div class="box-header with-border">
+	                            <h3 class="box-title text-green">指标信息</h3>
+	                            <div class="box-tools pull-right">
+	                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+	                            </div>
+	                        </div>
+                          	<div class="box-body">
+                          		<div class="row">
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">用地性质</label>
+			                                 <input type="text" id="YDXZ" name="YDXZ" value="${pd.YDXZ }" class="form-control">
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">是否混合用地</label>
+			                                 <div class="box-select">
+												<select id=SFHHYD name="SFHHYD" class="form-control select2"
+													style="width: 100%;">
+													<option selected="selected" value=""></option>
+													<c:forEach items="${sfhhydList}" var="item">
+														<option value="${item.NAME }"
+															<c:if test="${item.NAME == pd.SFHHYD }">selected</c:if>>${item.NAME }</option>
+													</c:forEach>
+												</select>
+											 </div>
+			                             </div>
+									</div>
+								</div>
+								
+               		  			<div class="row">
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">混合用地比例</label>
+			                                 <input type="text" id="HHYDBL" name="HHYDBL" value="${pd.HHYDBL }" class="form-control">
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+									 	 <div class="form-group input-group">
+			                                 <label for="">用地面积（㎡）</label>
+			                                 <input type="text" id="YDMJ" name="YDMJ" value="${pd.YDMJ }" class="form-control" oninput="value=value.replace(/[^\-?\d.]/g,'')">
+			                             </div>
+									</div>
+								</div>
+								
+								<div class="row">
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">基础设施分类</label>
+			                                 <input type="text" id="JCSSFL" name="JCSSFL" value="${pd.JCSSFL }" class="form-control">
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">土地资源类型</label>
+			                                 <input type="text" id="TDZYLX" name="TDZYLX" value="${pd.TDZYLX }" class="form-control">
+			                             </div>
+									</div>
+								</div>
+	                             
+	                             
+	                            <div class="row">
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">土地使用类型</label>
+			                                 <input type="text" id="TDSYLX" name="TDSYLX" value="${pd.TDSYLX }" class="form-control">
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+									     <div class="form-group">
+			                                 <label>海绵城市要求</label>
+			                                 <textarea id="HMCSYQ" name="HMCSYQ" class="form-control input-textarea">${pd.HMCSYQ }</textarea>
+		                           		 </div>
+									</div>
+								</div>
+	                             
+                        	</div>
+                        </div>
+                        
+                        <!-- -----------建设许可（建筑工程）----------------- -->
+                         <div class="box box-success infoDiv unDisDiv" id=infoDiv3>
+                            <div class="box-header with-border">
+                                <h3 class="box-title text-green">指标信息</h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                           	<div class="box-body">
+                           	
+                           	    <div class="row">
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">用地性质</label>
+			                                 <input type="text" id="YDXZ" name="YDXZ" value="${pd.YDXZ }" class="form-control">
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+									     <div class="form-group">
+			                                 <label for="">是否混合用地</label>
+			                                 <div class="box-select">
+												<select id=SFHHYD name="SFHHYD" class="form-control select2"
+													style="width: 100%;">
+													<option selected="selected" value=""></option>
+													<c:forEach items="${sfhhydList}" var="item">
+														<option value="${item.NAME }"
+															<c:if test="${item.NAME == pd.SFHHYD }">selected</c:if>>${item.NAME }</option>
+													</c:forEach>
+												</select>
+											 </div>
+			                             </div>
+									</div>
+								 </div>
+	                   		  	
+	                            <div class="row">
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">混合用地比例</label>
+			                                 <input type="text" id="HHYDBL" name="HHYDBL" value="${pd.HHYDBL }" class="form-control">
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+									     <div class="form-group">
+			                                 <label for="">用地面积（㎡）</label>
+			                                 <input type="text" id="YDMJ" name="YDMJ" value="${pd.YDMJ }" class="form-control" oninput="value=value.replace(/[^\-?\d.]/g,'')" >
+			                             </div>
+									</div>
+								</div>
+	                             
+                                <div class="row">
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">容积率（.00）</label>
+			                                 <input type="text" id="RJL" name="RJL" value="${pd.RJL }" class="form-control" oninput="value=value.replace(/[^\-?\d.]/g,'')">
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+									     <div class="form-group">
+			                                 <label for="">建筑密度（%）</label>
+			                                 <input type="text" id="JZMD" name="JZMD" value="${pd.JZMD }" class="form-control" oninput="value=value.replace(/[^\-?\d.]/g,'')" >
+			                             </div>
+									</div>
+								</div>
+	                             
+                                <div class="row">
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">绿地率（%）</label>
+			                                 <input type="text" id="LDL" name="LDL" value="${pd.LDL }" class="form-control" oninput="value=value.replace(/[^\-?\d.]/g,'')" >
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+									     <div class="form-group">
+			                                 <label for="">总建筑面积（㎡）</label>
+			                                 <input type="text" id="ZJZMJ" name="ZJZMJ" value="${pd.ZJZMJ }" class="form-control" oninput="value=value.replace(/[^\-?\d.]/g,'')">
+			                             </div>
+									</div>
+								</div>
+								
+								<div class="row">
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">地上建筑面积（㎡）</label>
+			                                 <input type="text" id="DSJZMJ" name="DSJZMJ" value="${pd.DSJZMJ }" class="form-control" oninput="value=value.replace(/[^\-?\d.]/g,'')" >
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+									     <div class="form-group">
+			                                 <label for="">地下建筑面积（㎡）</label>
+			                                 <input type="text" id="DXJZMJ" name="DXJZMJ" value="${pd.DXJZMJ }" class="form-control" oninput="value=value.replace(/[^\-?\d.]/g,'')" >
+			                             </div>
+									</div>
+								</div>
+                           		 
+	                            
+	                            <div class="row">
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">停车位（个）</label>
+			                                 <input type="text" id="TCW" name="TCW" value="${pd.TCW }" class="form-control" oninput="value=value.replace(/[^\d]/g,'')">
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+									     <div class="form-group">
+			                                 <label for="">地上停车位（个）</label>
+			                                 <input type="text" id="DSTCW" name="DSTCW" value="${pd.DSTCW }" class="form-control" oninput="value=value.replace(/[^\d]/g,'')">
+			                             </div>
+									</div>
+								</div>
+	                            
+                           		<div class="row">
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">地下停车位（个）</label>
+			                                 <input type="text" id="DXTCW" name="DXTCW" value="${pd.DXTCW }" class="form-control" oninput="value=value.replace(/[^\d]/g,'')">
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+									     <div class="form-group">
+			                                 <label for="">住宅建筑面积（㎡）</label>
+			                                 <input type="text" id="ZZJZMJ" name="ZZJZMJ" value="${pd.ZZJZMJ }" class="form-control" oninput="value=value.replace(/[^\-?\d.]/g,'')">
+			                             </div>
+									</div>
+								</div>
+	                            
+                               	<div class="row">
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">户数（户）</label>
+			                                 <input type="text" id="HS" name="HS" value="${pd.HS }" class="form-control" oninput="value=value.replace(/[^\d]/g,'')">
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+									     <div class="form-group">
+			                                 <label for="">办公建筑面积（㎡）</label>
+			                                 <input type="text" id="BGJZMJ" name="BGJZMJ" value="${pd.BGJZMJ }" class="form-control" oninput="value=value.replace(/[^\-?\d.]/g,'')">
+			                             </div>
+									</div>
+								</div>
+	                            
+                               	<div class="row">
+									<div class="col-lg-6">
+									     <div class="form-group">
+			                                 <label for="">配套类型</label>
+			                                 <div class="box-select">
+												<select id=PTLX name="PTLX" class="form-control select2"
+													style="width: 100%;">
+													<option selected="selected" value=""></option>
+													<c:forEach items="${ptlxList}" var="item">
+														<option value="${item.NAME }"
+															<c:if test="${item.NAME == pd.PTLX }">selected</c:if>>${item.NAME }</option>
+													</c:forEach>
+												</select>
+											 </div>
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+									     <div class="form-group">
+			                                 <label for="">配套建筑面积（㎡）</label>
+			                                 <input type="text" id="PTJZMJ" name="PTJZMJ" value="${pd.PTJZMJ }" class="form-control" oninput="value=value.replace(/[^\-?\d.]/g,'')">
+			                             </div>
+									</div>
+								</div>
+	                             
+                                <div class="row">
+									<div class="col-lg-6">
+									     <div class="form-group">
+			                                 <label for="">建设项目内含道路占面积（㎡）</label>
+			                                 <input type="text" id="ZYDLMJ" name="ZYDLMJ" value="${pd.ZYDLMJ }" class="form-control" oninput="value=value.replace(/[^\-?\d.]/g,'')">
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+									     <div class="form-group">
+			                                 <label for="">建筑物使用性质（多个）</label>
+			                                 <div class="box-select">
+												<select id=JZWSYXZ multiple="multiple" class="form-control select2"
+													style="width: 100%;">
+													<option selected="selected" value=""></option>
+													<c:forEach items="${jzwsyxzList}" var="item">
+														<option value="${item.NAME }"
+															<c:if test="${item.NAME == pd.JZWSYXZ }">selected</c:if>>${item.NAME }</option>
+													</c:forEach>
+												</select>
+											 </div>
+			                             </div>
+									</div>
+								</div>
+                   				 
+	                            <div class="row">
+									<div class="col-lg-6">
+									     <div class="form-group">
+			                                 <label>海绵城市要求</label>
+			                                 <textarea id="HMCSYQ" name="HMCSYQ" class="form-control input-textarea">${pd.HMCSYQ }</textarea>
+		                           		 </div>
+									</div>
+									<div class="col-lg-6">
+									</div>
+								</div>
+								
+                        	</div>
+                        </div>
+                        <!-- -----------建设许可（市政道桥）----------------- -->
+                        
+                         <div class="box box-success infoDiv unDisDiv" id=infoDiv4>
+                            <div class="box-header with-border">
+                                <h3 class="box-title text-green">指标信息</h3>
+
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                           	<div class="box-body">
+                           		<div class="row">
+									<div class="col-lg-6">
+							    		 <div class="form-group">
+			                                 <label for="">用地性质</label>
+			                                 <input type="text" id="YDXZ" name="YDXZ" value="${pd.YDXZ }" class="form-control">
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+										<div class="form-group">
+			                                 <label for="">用地面积（㎡）</label>
+			                                 <input type="text" id="YDMJ" name="YDMJ" value="${pd.YDMJ }" class="form-control" oninput="value=value.replace(/[^\-?\d.]/g,'')">
+		                             	</div>
+									</div>
+								</div>
+								
+								
+	                   		  	<div class="row">
+									<div class="col-lg-6">
+							    		 <div class="form-group">
+			                                 <label for="">道路总长度（中线长度）（米）</label>
+			                                 <input type="text" id="DLZCD" name="DLZCD" value="${pd.DLZCD }" class="form-control" oninput="value=value.replace(/[^\-?\d.]/g,'')">
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">道路宽度</label>
+			                                 <input type="text" id="DLKD" name="DLKD" value="${pd.DLKD }" class="form-control">
+			                             </div>
+									</div>
+								</div>
+	                             
+	                            <div class="row">
+									<div class="col-lg-6">
+							    		 <div class="form-group">
+			                                 <label for="">道路级别</label>
+			                                 <input type="text" id="DLJB" name="DLJB" value="${pd.DLJB }" class="form-control">
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+										  <div class="form-group">
+			                                 <label for="">断面形式</label>
+			                                 <input type="text" id="DMXS" name="DMXS" value="${pd.DMXS }" class="form-control">
+			                              </div>
+									</div>
+								</div>
+                           		
+	                            <div class="row">
+									<div class="col-lg-6">
+							    		  <div class="form-group">
+			                                 <label for="">设计标准</label>
+			                                 <input type="text" id="SJBZ" name="SJBZ" value="${pd.SJBZ }" class="form-control">
+			                              </div>
+									</div>
+									<div class="col-lg-6">
+										  <div class="form-group">
+			                                 <label for="">折算建筑面积（㎡）</label>
+			                                 <input type="text" id="ZSJZMJ" name="ZSJZMJ" value="${pd.ZSJZMJ }" class="form-control" oninput="value=value.replace(/[^\-?\d.]/g,'')">
+			                              </div>
+									</div>
+								</div>
+	                            
+                              	<div class="row">
+									<div class="col-lg-6">
+						    		     <div class="form-group">
+			                                 <label>海绵城市要求</label>
+			                                 <textarea id="HMCSYQ" name="HMCSYQ" class="form-control input-textarea">${pd.HMCSYQ }</textarea>
+		                          		 </div>
+									</div>
+									<div class="col-lg-6">
+									</div>
+								</div>
+	                            
+                        	</div>
+                        </div>
+                        <!-- -----------建设许可（市政管线）----------------- -->
+                         <div class="box box-success infoDiv unDisDiv" id=infoDiv5>
+                            <div class="box-header with-border">
+                                <h3 class="box-title text-green">指标信息</h3>
+
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                           	<div class="box-body">
+                           		<div class="row">
+									<div class="col-lg-6">
+						    		     <div class="form-group">
+			                                 <label for="">用地性质</label>
+			                                 <input type="text" id="YDXZ" name="YDXZ" value="${pd.YDXZ }" class="form-control">
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+										<div class="form-group">
+			                                 <label for="">用地面积（㎡）</label>
+			                                 <input type="text" id="YDMJ" name="YDMJ" value="${pd.YDMJ }" class="form-control" oninput="value=value.replace(/[^\-?\d.]/g,'')">
+		                            	 </div>
+									</div>
+								</div>
+	                   		  	
+	                            <div class="row">
+									<div class="col-lg-6">
+						    		     <div class="form-group">
+			                                 <label for="">管线类型</label>
+			                                 <input type="text" id="GXLX" name="GXLX" value="${pd.GXLX }" class="form-control">
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+										<div class="form-group">
+			                                 <label for="">管线总长度（㎞）</label>
+			                                 <input type="text" id="GXZCD" name="GXZCD" value="${pd.GXZCD }" class="form-control" oninput="value=value.replace(/[^\-?\d.]/g,'')">
+			                             </div>
+									</div>
+								</div> 
+	                            
+                        		<div class="row">
+									<div class="col-lg-6">
+						    		     <div class="form-group">
+			                                 <label for="">折算建筑面积（㎡）</label>
+			                                 <input type="text" id="ZSJZMJ" name="ZSJZMJ" value="${pd.ZSJZMJ }" class="form-control" oninput="value=value.replace(/[^\-?\d.]/g,'')">
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+										<div class="form-group">
+			                                 <label>海绵城市要求</label>
+			                                 <textarea id="HMCSYQ" name="HMCSYQ" class="form-control input-textarea">${pd.HMCSYQ }</textarea>
+		                           		 </div>
+									</div>
+								</div> 
+	                             
+                        	</div>
+                        </div>
+                        <!-- -----------竣工（建筑工程）----------------- -->
+                         <div class="box box-success infoDiv unDisDiv" id=infoDiv6>
+                            <div class="box-header with-border">
+                                <h3 class="box-title text-green">指标信息</h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                           	<div class="box-body">
+                           		<div class="row">
+									<div class="col-lg-6">
+						    		     <div class="form-group">
+			                                 <label for="">工程地址</label>
+			                                 <input type="text" id="GCDZ" name="GCDZ" value="${pd.GCDZ }" class="form-control">
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+										<div class="form-group">
+			                                 <label for="">勘察单位</label>
+			                                 <input type="text" id="KCDW" name="KCDW" value="${pd.KCDW }" class="form-control">
+			                             </div>
+									</div>
+								</div> 
+	                   		  	
+                           		<div class="row">
+									<div class="col-lg-6">
+						    		     <div class="form-group">
+			                                 <label for="">设计单位</label>
+			                                 <input type="text" id="SJDW" name="SJDW" value="${pd.SJDW }" class="form-control">
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">用地面积（㎡）</label>
+			                                 <input type="text" id="YDMJ" name="YDMJ" value="${pd.YDMJ }" class="form-control" oninput="value=value.replace(/[^\-?\d.]/g,'')">
+			                             </div>
+									</div>
+								</div> 
+	                             
+	                            <div class="row">
+									<div class="col-lg-6">
+						    		     <div class="form-group">
+			                                 <label for="">总建筑面积（㎡）</label>
+			                                 <input type="text" id="ZJZMJ" name="ZJZMJ" value="${pd.ZJZMJ }" class="form-control" oninput="value=value.replace(/[^\-?\d.]/g,'')">
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">地上建筑面积（㎡）</label>
+			                                 <input type="text" id="DSJZMJ" name="DSJZMJ" value="${pd.DSJZMJ }" class="form-control" oninput="value=value.replace(/[^\-?\d.]/g,'')">
+			                             </div>
+									</div>
+								</div> 
+	                             
+	                             
+	                            <div class="row">
+									<div class="col-lg-6">
+						    		     <div class="form-group">
+			                                 <label for="">地下建筑面积（㎡）</label>
+			                                 <input type="text" id="DXJZMJ" name="DXJZMJ" value="${pd.DXJZMJ }" class="form-control" oninput="value=value.replace(/[^\-?\d.]/g,'')">
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">建筑占地面积（㎡）</label>
+			                                 <input type="text" id="JZZDMJ" name="JZZDMJ" value="${pd.JZZDMJ }" class="form-control" oninput="value=value.replace(/[^\-?\d.]/g,'')">
+			                             </div>
+									</div>
+								</div> 
+                           		
+                                <div class="row">
+									<div class="col-lg-6">
+				    		    		 <div class="form-group">
+			                                 <label for="">建筑高度（米）</label>
+			                                 <input type="text" id="JZGD" name="JZGD" value="${pd.JZGD }" class="form-control" oninput="value=value.replace(/[^\-?\d.]/g,'')">
+		                            	 </div>
+									</div>
+									<div class="col-lg-6">
+										  <div class="form-group">
+			                                 <label for="">层数（层）</label>
+			                                 <input type="text" id="CS" name="CS" value="${pd.CS }" class="form-control" oninput="value=value.replace(/[^\d]/g,'')">
+			                              </div>
+									</div>
+								</div> 
+	                             
+                                <div class="row">
+									<div class="col-lg-6">
+				    		    		 <div class="form-group">
+			                                 <label for="">结构体系</label>
+			                                 <input type="text" id="JGTX" name="JGTX" value="${pd.JGTX }" class="form-control">
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+										  <div class="form-group">
+			                                 <label for="">抗震设防烈度</label>
+			                                 <input type="text" id="KZSFLD" name="KZSFLD" value="${pd.KZSFLD }" class="form-control">
+			                              </div>
+									</div>
+								</div> 
+                           		 
+	                            <div class="row">
+									<div class="col-lg-6">
+				    		    		 <div class="form-group">
+			                                 <label for="">抗震设防级别</label>
+			                                 <input type="text" id="KZSFJB" name="KZSFJB" value="${pd.KZSFJB }" class="form-control">
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">厂房跨度</label>
+			                                 <input type="text" id="CFKD" name="CFKD" value="${pd.CFKD }" class="form-control">
+			                             </div>
+									</div>
+								</div> 
+								
+								<div class="row">
+									<div class="col-lg-6">
+				    		    		 <div class="form-group">
+			                                 <label for="">基础形式</label>
+			                                 <input type="text" id="JCXS" name="JCXS" value="${pd.JCXS }" class="form-control">
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">耐火等级</label>
+			                                 <input type="text" id="NHDJ" name="NHDJ" value="${pd.NHDJ }" class="form-control">
+			                             </div>
+									</div>
+								</div> 
+                               	 
+	                            
+                                <div class="row">
+									<div class="col-lg-6">
+				    		    		 <div class="form-group">
+			                                 <label for="">人防等级</label>
+			                                 <input type="text" id="RFDJ" name="RFDJ" value="${pd.RFDJ }" class="form-control">
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+									</div>
+								</div> 
+                                 
+                        	</div>
+                        </div>
+                        
+                         <!-- -----------竣工（市政道桥）----------------- -->
+                         <div class="box box-success infoDiv unDisDiv" id=infoDiv7>
+                            <div class="box-header with-border">
+                                <h3 class="box-title text-green">指标信息</h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                           	<div class="box-body">
+                           	
+                           		<div class="row">
+									<div class="col-lg-6">
+				    		    		 <div class="form-group">
+			                                 <label for="">工程地址</label>
+			                                 <input type="text" id="GCDZ" name="GCDZ" value="${pd.GCDZ }" class="form-control">
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">勘察单位</label>
+			                                 <input type="text" id="KCDW" name="KCDW" value="${pd.KCDW }" class="form-control">
+			                             </div>
+									</div>
+								</div> 
+								
+								<div class="row">
+									<div class="col-lg-6">
+				    		    		 <div class="form-group">
+			                                 <label for="">设计单位</label>
+			                                 <input type="text" id="SJDW" name="SJDW" value="${pd.SJDW }" class="form-control">
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">用地面积（㎡）</label>
+			                                 <input type="text" id="YDMJ" name="YDMJ" value="${pd.YDMJ }" class="form-control" oninput="value=value.replace(/[^\-?\d.]/g,'')">
+			                             </div>
+									</div>
+								</div> 
+	                   		  	
+	                            
+	                            <div class="row">
+									<div class="col-lg-6">
+				    		    		 <div class="form-group">
+			                                 <label for="">道路总长度（总线长度）（米）</label>
+			                                 <input type="text" id="DLZCD" name="DLZCD" value="${pd.DLZCD }" class="form-control" oninput="value=value.replace(/[^\-?\d.]/g,'')">
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">道路宽度</label>
+			                                 <input type="text" id="DLKD" name="DLKD" value="${pd.DLKD }" class="form-control">
+			                             </div>
+									</div>
+								</div>  
+	                             
+	                            <div class="row">
+									<div class="col-lg-6">
+				    		    		 <div class="form-group">
+			                                 <label for="">断面形式</label>
+			                                 <input type="text" id="DMXS" name="DMXS" value="${pd.DMXS }" class="form-control">
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">折算建筑面积（㎡）</label>
+			                                 <input type="text" id="ZSJZMJ" name="ZSJZMJ" value="${pd.ZSJZMJ }" class="form-control" oninput="value=value.replace(/[^\-?\d.]/g,'')">
+			                             </div>
+									</div>
+								</div>  
+	                             
+                        	</div>
+                        </div>
+                        
+                         <!-- -----------竣工（建筑工程）----------------- -->
+                         <div class="box box-success infoDiv unDisDiv" id=infoDiv8>
+                            <div class="box-header with-border">
+                                <h3 class="box-title text-green">指标信息</h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                           	<div class="box-body">
+                           	
+                         		<div class="row">
+									<div class="col-lg-6">
+				    		    		 <div class="form-group">
+			                                 <label for="">工程地址</label>
+			                                 <input type="text" id="GCDZ" name="GCDZ" value="${pd.GCDZ }" class="form-control">
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">勘察单位</label>
+			                                 <input type="text" id="KCDW" name="KCDW" value="${pd.KCDW }" class="form-control">
+			                             </div>
+									</div>
+								</div>  
+								
+								<div class="row">
+									<div class="col-lg-6">
+		    		    				 <div class="form-group">
+			                                 <label for="">设计单位</label>
+			                                 <input type="text" id="SJDW" name="SJDW" value="${pd.SJDW }" class="form-control">
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">用地面积（㎡）</label>
+			                                 <input type="text" id="YDMJ" name="YDMJ" value="${pd.YDMJ }" class="form-control" oninput="value=value.replace(/[^\-?\d.]/g,'')">
+			                             </div>
+									</div>
+								</div>  
+	                   		  	
+	                             
+	                            <div class="row">
+									<div class="col-lg-6">
+		    		    				 <div class="form-group">
+			                                 <label for="">管线类型</label>
+			                                 <input type="text" id="GXLX" name="GXLX" value="${pd.GXLX }" class="form-control">
+			                             </div>
+									</div>
+									<div class="col-lg-6">
+										 <div class="form-group">
+			                                 <label for="">管线总长度（㎞）</label>
+			                                 <input type="text" id="GXZCD" name="GXZCD" value="${pd.GXZCD }" class="form-control" oninput="value=value.replace(/[^\-?\d.]/g,'')">
+			                             </div>
+									</div>
+								</div>   
+	                            
+                        	</div>
+                        </div>
+                   		<!-- 发证信息结束 -->
+                    </div>
+                </div>
+                </form>   
+            </section>
+       
+        </div>
+        <!-- /.content-wrapper -->
+		
+    </div>
+    <!-- ./wrapper -->
+        <!-- jQuery 3 -->
+  
+    <script src="plugins/xha/plugins/jquery/dist/jquery-form.js"></script>
+    <script src="static/js/jquery.tips.js"></script>
+    
+    <!-- Bootstrap 3.3.7 -->
+    <script src="plugins/xha/plugins/bootstrap/dist/js/bootstrap.min.js"></script>
+    <!-- Select2 -->
+    <script src="plugins/xha/plugins/select2/dist/js/select2.full.min.js"></script>
+    <script src="plugins/xha/plugins/select2/dist/js/i18n/zh-CN.js"></script>
+    <script src="plugins/xha/plugins/select2/totree/select2totree.js"></script>
+    <!-- InputMask -->
+    <script src="plugins/xha/plugins/inputmask/dist/inputmask/inputmask.js"></script>
+    <script src="plugins/xha/plugins/inputmask/dist/inputmask/inputmask.extensions.js"></script>
+    <script src="plugins/xha/plugins/inputmask/dist/inputmask/inputmask.numeric.extensions.js"></script>
+    <script src="plugins/xha/plugins/inputmask/dist/inputmask/inputmask.date.extensions.js"></script>
+    <script src="plugins/xha/plugins/inputmask/dist/inputmask/inputmask.phone.extensions.js"></script>
+    <script src="plugins/xha/plugins/inputmask/dist/inputmask/jquery.inputmask.js"></script>
+    <script src="plugins/xha/plugins/inputmask/dist/inputmask/phone-codes/phone.js"></script>
+    <script src="plugins/xha/plugins/inputmask/dist/inputmask/phone-codes/phone-be.js"></script>
+    <!-- bootstrap datepicker -->
+    <script src="plugins/xha/plugins/bootstrap-datepicker/dist/js/bootstrap-datepicker.js"></script>
+    <!-- SlimScroll -->
+    <script src="plugins/xha/plugins/jquery-slimscroll/jquery.slimscroll.min.js"></script>
+    <!-- iCheck 1.0.1 -->
+    <script src="plugins/xha/plugins/iCheck/icheck.min.js"></script>
+    <!-- FastClick -->
+    <script src="plugins/xha/plugins/fastclick/lib/fastclick.js"></script>
+    <!-- AdminLTE App -->
+    <script src="plugins/xha/dist/js/adminlte.min.js"></script>
+
+    <script src="plugins/xha/dist/js/pages/index_g.js"></script>
+    <script src="plugins/xha/dist/js/pages/index_w.js"></script>
+    	
+    <script src="plugins/xha/plugins/layer/layer.js"></script>
+   
+    
+    <script type="text/javascript">
+   		//保存按钮点击事件
+   		$("#save").on("click",function(){
+   			
+   			if($("#XMWYM").val().trim()==""){
+   				layer.tips("请填写项目唯一码","#XMWYM",{
+   					tips:[1,'#3595CC'],
+   					time:3000
+   				});
+   				return false;
+			}
+			if($("#XMMC").val().trim()==""){
+   				layer.tips("请填写项目名称","#XMMC",{
+   					tips:[1,'#3595CC'],
+   					time:3000
+   				});
+   				return false;
+			}
+			if($("#DAHH").val().trim()==""){
+   				layer.tips("请填写档案盒号","#DAHH",{
+   					tips:[1,'#3595CC'],
+   					time:3000
+   				});
+   				return false;
+			}
+			if($("#FWWH").val().trim()==""){
+   				layer.tips("请填写发文文号","#FWWH",{
+   					tips:[1,'#3595CC'],
+   					time:3000
+   				});
+   				return false;
+			}
+			if($("#FWRQ").val().trim()==""){
+   				layer.tips("请填写发文日期","#FWRQ",{
+   					tips:[1,'#3595CC'],
+   					time:3000
+   				});
+   				return false;
+			}
+   			var newUrl='sphz/fawen/save.do?FWLXID='+$("#FWLXID").val();
+   			//alert($("#JZWSYXZ").val());
+   			if($("#FWLXID").val()=="建设许可（建筑工程）"){
+   				newUrl='sphz/fawen/save.do?FWLXID='+$("#FWLXID").val()+'&JZWSYXZ='+$("#JZWSYXZ").val();
+   			}
+   			$("#addForm").attr('action',newUrl);
+			//$(".unDisDiv").remove();//删除display=none的发文信息Div
+			$(".unDisDiv").remove();//删除display=none的发文信息Div
+			var index = layer.load(0, {shade: false}); //0代表加载的风格，支持0-2
+			$("#addForm").ajaxSubmit(function(data){
+    			//console.log(data);
+    			if(data.result=="success"){
+    				layer.msg('保存成功', {icon: 1});
+    				var index = parent.layer.getFrameIndex(window.name);
+    				parent.layer.close(index); 
+    				window.parent.location.reload();//刷新父页面
+    			}else{
+    				layer.msg('保存失败,'+data.result, {icon: 1});
+    			}
+    		});
+   		})
+   		
+    	//报建类型切换更换发证信息内容
+    	function changeStage(){
+   			var stageIndex= $("#FWLXID").get(0).selectedIndex;//获取下拉框选中项的索引
+   			var infoDivs=$(".infoDiv");
+   			for(var i=0;i<infoDivs.length;i++){
+   				infoDivs[i].style.display="none";
+   				$(".infoDiv:eq("+i+")").addClass("unDisDiv");
+   			}
+   			infoDivs[stageIndex].style.display="block";
+   			$(".infoDiv:eq("+(stageIndex)+")").removeClass("unDisDiv");
+   		}
+   		
+   		function check(value){
+			$.ajax({
+				type: "POST",
+				url: 'sphz/project/getProjectByXmwym',
+		    	data: {XMWYM:value},
+				dataType:'json',
+				cache: false,
+				success: function(data){
+					if(data.result=="success"){
+						var	proj= data.proj;
+						$("#SSXMWYM").val(proj.SSXMWYM);
+						$("#XMMC").val(proj.XMMC);
+					}
+				}
+	 	 	 });
+   		}
+
+    </script>
+
+  
+</body>
+
+</html>

@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="TextDataMapper">
+	<resultMap type="TextData" id="textResultMap">
+		<id column="ID" property="ID"/>	
+		<result column="DATA_SOURCE" property="DATA_SOURCE"/>
+		<result column="IN_TIME" property="IN_TIME"/>
+		<result column="COMPANY" property="COMPANY"/>
+		<result column="PRINT_TIME" property="PRINT_TIME"/>
+		<result column="PID" property="PID"/>
+		<result column="SORT" property="SORT"/>
+		<result column="NAME" property="NAME"/>
+		<result column="ISBOTTOMNODE" property="ISBOTTOMNODE"/>
+		<result column="FTP_URL" property="FTP_URL"/>
+	</resultMap>
+	
+	<!--模型表名 -->
+	<sql id="tableName">
+		text_data
+	</sql>
+	
+		<!-- 字段 -->
+	<sql id="Field">
+		ID,
+		DATA_TYPE,
+		DATA_SOURCE,
+		IN_TIME,
+		COMPANY,
+		PRINT_TIME,
+		PID,
+		SORT,
+		ftp_url,
+		ISBOTTOMNODE,
+		NAME
+	</sql>
+	
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{ID},
+		#{DATA_TYPE},	
+		#{DATA_SOURCE},
+		#{IN_TIME},	
+		#{COMPANY},	
+		#{PRINT_TIME},	
+		#{PID},
+		#{SORT},
+		#{FTP_URL},
+		#{ISBOTTOMNODE},
+		#{NAME}
+	</sql>
+	
+	<!-- 列表 -->
+	<select id="datalistPage" parameterType="page" resultType="pd">
+		select t.id,t.data_type,t.data_source,t.in_time,t.company,t.print_time,t.PID,t.SORT,t.name,t.ftp_url,t.isbottomnode from text_data t where 1=1
+		<if test="pd.ID == '-1'"><!-- 检索 -->
+		and PID != 0
+		</if>
+		<if test="pd.ID!= null and pd.ID != '' and pd.ID != '-1'"><!-- 检索 -->
+		and PID = #{pd.ID}
+		</if>
+		<if test="pd.keywords!= null and pd.keywords != ''"><!-- 关键词检索 -->
+			and
+				(
+					t.name LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%')					
+					or t.data_source LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%')	
+					or t.company LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%')		
+				)
+		</if>
+		order by SORT
+	</select>
+	
+	<!-- 通过父ID获取其子级列表 -->
+	<select id="listSubTextByParentId" parameterType="String" resultMap="textResultMap">
+		select 
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+		where 
+			PID = #{parentId} order by SORT 
+	</select>
+	
+	<!--通过菜单ID获取数据 -->
+	<select id="getTreeById" parameterType="pd" resultType="pd">
+		select  
+			<include refid="Field"></include>
+		 from 
+			<include refid="tableName"></include>
+		 where ID=#{ID}
+	</select>
+	
+	<!--编辑 -->
+	<update id="updateTree" parameterType="TextData">
+		update 
+		<include refid="tableName"></include> 
+		set 
+			DATA_TYPE =#{DATA_TYPE},
+			DATA_SOURCE =#{DATA_SOURCE},
+			IN_TIME =#{IN_TIME},
+			COMPANY =#{COMPANY},
+			PRINT_TIME =#{PRINT_TIME},
+			PID =#{PID},
+			SORT =#{SORT},
+			ftp_url =#{FTP_URL},
+			ISBOTTOMNODE =#{ISBOTTOMNODE},
+			NAME =#{NAME}
+		where 
+			ID=#{ID}
+	</update>
+	
+	<!--取最大ID-->
+	<select id="findMaxId" parameterType="pd" resultType="pd">
+		select MAX(ID) MID from 
+		<include refid="tableName"></include>
+	</select>
+	
+	<!--新增 -->
+	<insert id="insertText" parameterType="TextData">
+		insert into 
+			<include refid="tableName"></include> 
+		(
+			<include refid="Field"></include>
+		) values (
+			<include refid="FieldValue"></include>
+		)
+	</insert>
+	
+	<!-- 根据pid删除数据 -->
+	<delete id="deleteByPID" parameterType="pd">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			PID = #{ID} or ID = #{ID}
+	</delete>
+	
+	<!-- 删除-->
+	<delete id="delete" parameterType="pd">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			id = #{id}
+	</delete>
+	
+	<!-- 批量删除 -->
+	<delete id="deleteAll" parameterType="String">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			id in
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+                 #{item}
+		</foreach>
+	</delete>
+</mapper>

@@ -1,0 +1,40 @@
+.search-result {
+    width: 85% ;/* 鏀规垚鍜屼綘鐨刬nput妗嗕竴鏍峰锛屾垜鐨勯偅涓闈㈣繕鏈塪iv锛屾墍浠ョ敤鐨�100%銆� */
+    visibility: hidden;
+    padding: 10px 0;
+    background: #ffffff;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+     
+    position: absolute;
+    background-color: #fff;
+    z-index: 999;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.2);
+    padding: 10px;
+    max-height: 400px;
+    overflow: auto;
+}
+
+.search-result-contain {
+    width: 100%;
+    padding: 0 !important;
+    list-style: none;
+}
+
+.search-result-contain li {
+    font-size: 14px;
+    height: 40px;
+    line-height: 40px;
+    border-bottom: 1px solid #ededed;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+      
+}
+
+.search-result-contain li:hover {
+    background-color: rgba(19, 116, 226, 0.1);
+}
+.input-textarea{
+	height:50px !important;
+}
+

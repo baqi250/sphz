@@ -1,0 +1,38 @@
+/* 鏂囧瓧妗� */
+
+.box-body .box-text {
+    width: 100%;
+    text-indent: 20px;
+    line-height: 20px;
+}
+
+.box-body .box-text p {
+    text-align: justify;
+    text-justify: inter-ideograph;
+}
+
+
+/* Echarts鍥� */
+
+.box-body .box-chart {
+    width: 100%;
+    height: 296px;
+}
+
+
+/* 涓嬫媺妗� */
+
+.box-tools .btn-group .dropdown-menu {
+    min-width: 0;
+}
+
+.reportDiv{
+    width: 100%;
+    margin-left: 20px;
+}
+#exportYSSZ{
+	width:150px;
+}
+#exportXMXX{
+	width:150px;
+}

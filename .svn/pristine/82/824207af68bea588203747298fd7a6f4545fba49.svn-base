@@ -1,0 +1,25 @@
+.content-table {
+    padding: 5px 8px;
+}
+
+.content-table h3 {
+    margin: 10px 0 !important;
+}
+
+.table-title {
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.table-title i {
+    margin-right: 4px;
+}
+
+.table-bordered {
+    table-layout: fixed;
+    margin-bottom: 0 !important;
+}
+
+.table-bordered th {
+    text-align: center;
+}

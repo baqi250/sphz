@@ -1,0 +1,7 @@
+#ftp.host:192.168.109.44
+ftp.host:localhost
+ftp.port:21
+ftp.username:admin
+ftp.password:123
+ftp.hxfwbasepath:/hxfw
+ftp.smwsbasepath:/smws

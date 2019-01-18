@@ -1,0 +1,182 @@
+/* 缁涙盯锟斤拷 */
+
+@media (max-width: 770px) {
+    .box-select-item {
+        margin: 10px 0;
+    }
+}
+
+.box-mutiselect {
+    display: inline-block;
+}
+
+@media (min-width: 1380px) {
+    .box-mutiselect {
+        width: 74%;
+    }
+}
+
+@media (max-width: 1380px) {
+    .box-mutiselect {
+        width: 90%;
+    }
+}
+
+
+/* 閹兼粎鍌ㄥ锟� */
+
+.box-search {
+    width: 100%;
+}
+
+@media (min-width: 1040px) {
+    .box-search {
+        width: 100%;
+        padding: 10px 120px 0 10px;
+    }
+}
+
+@media (max-width: 1040px) and (min-width: 770px) {
+    .box-search {
+        width: 100%;
+        padding: 10px 60px 0 10px;
+    }
+}
+
+@media (max-width: 770px) {
+    .box-search {
+        width: 100%;
+        padding: 10px 10px 0 10px;
+    }
+}
+
+
+/* 鐞涖劍鐗搁幐澶愭尦 */
+
+.table-badge {
+    margin: 0 6px;
+    cursor: pointer;
+}
+
+.bg-disabled {
+    background-color: #d2d6de !important;
+}
+
+.table-check {
+    margin-right: 6px;
+}
+
+
+/* 鐎涙劘銆冮弽锟� */
+
+.table-child {
+    margin-left: 20px;
+    width: 98%;
+}
+
+.table-child-middle {
+    border-right: 3px double #d2d6de;
+}
+.statusselected{
+	background-color: #0bf6e5;
+}
+
+#mapContent{
+	height:100%;
+	width:100%;
+	position:absolute;
+}
+#mapDiv{
+	height: 100%; 
+	z-index: 1;
+}
+.button-group{
+	position: absolute;
+	z-index:10;
+}
+.button-group button{
+	margin:10px;
+}
+#legendDiv1{
+	position: absolute !important;
+	z-index: 20;
+	bottom:10px;
+	right:10px;
+	width:120px;
+	background-color: #fff;
+}
+
+
+.searchDiv{
+	position: absolute;
+	z-index:10;
+	width:500px;
+    right:10px;
+    top: 10px;
+}
+
+.search-result {
+    width: 100% ;/* 鏀规垚鍜屼綘鐨刬nput妗嗕竴鏍峰锛屾垜鐨勯偅涓闈㈣繕鏈塪iv锛屾墍浠ョ敤鐨�100%銆� */
+    visibility: hidden;
+    padding: 10px 0;
+    background: #ffffff;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+     
+    position: absolute;
+    background-color: #fff;
+    z-index: 999;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.2);
+    padding: 10px;
+    max-height: 400px;
+    overflow: auto;
+}
+
+.search-result-contain {
+    width: 100%;
+    padding: 0 !important;
+    list-style: none;
+}
+
+.search-result-contain li {
+    font-size: 14px;
+    height: 80px;
+    line-height: 40px;
+    border-bottom: 1px solid #bbb3b3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+      
+}
+
+.search-result-contain li:hover {
+    background-color: rgba(19, 116, 226, 0.1);
+}
+
+.box-mutiselect {
+    width: 100%;
+}
+table{
+	width:100%;
+}
+.labelTd{
+	text-align: right;
+	width: 80px;
+}
+.contentTd{
+	text-align: left;
+	max-width:200px;
+}
+.buttonTd{
+	text-align: center;
+	width:70px;
+}
+.buttonTd button{
+	width:65px;
+}
+.icon-search{
+	width: 20px;
+    height: 20px;
+    position: absolute;
+    top: 9px;
+    right: 10px;
+}

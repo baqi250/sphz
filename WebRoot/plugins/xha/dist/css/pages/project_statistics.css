@@ -1,0 +1,177 @@
+/* 缂佹稒鐩敓鏂ゆ嫹 */
+
+@media (max-width: 770px) {
+    .box-select-item {
+        margin: 10px 0;
+    }
+}
+
+.box-mutiselect {
+    display: inline-block;
+}
+
+@media (min-width: 1380px) {
+    .box-mutiselect {
+        width: 74%;
+    }
+}
+
+@media (max-width: 1380px) {
+    .box-mutiselect {
+        width: 90%;
+    }
+}
+
+
+/* 闁瑰吋绮庨崒銊ヮ浖閿燂拷 */
+
+.box-search {
+    width: 100%;
+}
+
+@media (min-width: 1040px) {
+    .box-search {
+        width: 100%;
+        padding: 10px 120px 0 10px;
+    }
+}
+
+@media (max-width: 1040px) and (min-width: 770px) {
+    .box-search {
+        width: 100%;
+        padding: 10px 60px 0 10px;
+    }
+}
+
+@media (max-width: 770px) {
+    .box-search {
+        width: 100%;
+        padding: 10px 10px 0 10px;
+    }
+}
+
+
+/* 閻炴稏鍔嶉悧鎼佸箰婢舵劖灏� */
+
+.table-badge {
+    margin: 0 6px;
+    cursor: pointer;
+}
+
+.bg-disabled {
+    background-color: #d2d6de !important;
+}
+
+.table-check {
+    margin-right: 6px;
+}
+
+
+/* 閻庢稒鍔橀妴鍐冀閿燂拷 */
+
+.table-child {
+   /*  margin-left: 15%;
+    width: 99%; */
+    width: 100%;
+}
+
+.table-child-middle {
+    border-right: 3px double #d2d6de;
+}
+.statusselected{
+	background-color: #0bf6e5;
+}
+body{
+	position:absolute;
+	top:0px;
+	left:0px;
+	right:0px;
+	bottom:0px;
+	padding:0;
+	margin:0;
+}
+.table-child{
+	border-collapse: collapse;
+}
+.table-child,.table-child  tr th,.table-child tr td{
+	border: 1px solid #f4f4f4;
+}
+.tdDz{
+	background: #ffff0085;
+}
+.tdJz{
+	background: #00800085;
+}
+.tdHz{
+	background: #ff000085;
+}
+.tdMc{
+	background:#4c0fe217;
+}
+td{
+	width:35%;
+}
+.column_name{
+	width:15%;
+	text-align: right;
+}
+.table3 td{
+	width:23%;
+}
+.table3 .column_name{
+	width:10%;
+}
+.column_spnr{
+	width:85%;
+}
+.box-body {
+     padding: 0px !important; 
+}
+.form-group {
+     margin-bottom: 0px !important; 
+}
+.table-condensed>thead>tr>th, .table-condensed>tbody>tr>th, .table-condensed>tfoot>tr>th, .table-condensed>thead>tr>td, .table-condensed>tbody>tr>td, .table-condensed>tfoot>tr>td {
+    padding: 2px !important;
+}
+
+.box-header>.box-tools {
+    left: 5px !important;
+    top: -2px !important;
+}
+.box-title{
+	margin-left:5% !important;
+}
+.box-header>.box-select {
+	width: 400px !important;
+    width: calc(100% - 290px) !important;
+    width:-moz-calc(100% - 290px) !important;
+    width:-webkit-calc(100% - 290px) !important;
+}
+.box.box-primary>.box-header.with-border {
+     padding-left: 0% !important;
+}
+
+seelct>option .select{
+	background
+}
+.box {
+    margin-bottom: 0px;
+}
+.content {
+    padding: 0px;
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+}
+.box-header {
+    padding: 0px 0px;
+}
+.box {
+    width: 60%;
+    margin-left: 20%;
+}
+.box-bjjdlx{
+	width:84px;
+}
+.btn-save{
+	widht:61px;
+}

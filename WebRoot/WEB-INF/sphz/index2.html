@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>青岛市规划审批汇总系统</title>
+    <!-- Tell the browser to be responsive to screen width -->
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="stylesheet" href="sphz/bower_components/bootstrap/dist/css/bootstrap.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="sphz/bower_components/font-awesome/css/font-awesome.min.css">
+    <!-- Ionicons -->
+    <link rel="stylesheet" href="sphz/bower_components/Ionicons/css/ionicons.min.css">
+    <!-- daterange picker -->
+    <link rel="stylesheet" href="sphz/bower_components/bootstrap-daterangepicker/daterangepicker.css">
+    <!-- bootstrap datepicker -->
+    <link rel="stylesheet" href="sphz/bower_components/bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css">
+    <!-- iCheck for checkboxes and radio inputs -->
+    <link rel="stylesheet" href="sphz/plugins/iCheck/all.css">
+    <!-- Bootstrap time Picker -->
+    <link rel="stylesheet" href="sphz/plugins/timepicker/bootstrap-timepicker.min.css">
+    <!-- Select2 -->
+    <link rel="stylesheet" href="sphz/bower_components/select2/dist/css/select2.min.css">
+    <!-- Theme style -->
+    <link rel="stylesheet" href="sphz/dist/css/AdminLTE.css">
+    <!-- AdminLTE Skins. 色调更改 -->
+    <link rel="stylesheet" href="sphz/dist/css/skins/skin-blue.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="sphz/dist/css/index.css">
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+  <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+  <![endif]-->
+</head>
+
+<body class="hold-transition skin-blue sidebar-mini">
+    <div class="wrapper">
+
+        <!-- Main Header -->
+        <header class="main-header">
+
+            <!-- Logo -->
+            <a href="#" class="logo">
+                <!-- 小图标 -->
+                <span class="logo-mini"><i class="fa fa-laptop"></i></span>
+                <!-- 大图标 -->
+                <span class="logo-lg"><i class="fa fa-laptop"></i>青岛市规划审批汇总系统</span>
+            </a>
+
+            <!-- Header Navbar -->
+            <nav class="navbar navbar-static-top" role="navigation">
+                <!-- Sidebar toggle button-->
+                <a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button">
+                    <span class="sr-only">Toggle navigation</span>
+                </a>
+                <!-- Navbar Right Menu -->
+                <div class="navbar-custom-menu">
+                    <ul class="nav navbar-nav">
+                        <!-- Notifications Menu -->
+                        <li class="dropdown notifications-menu">
+                            <!-- Menu toggle button -->
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                                <i class="fa fa-bell-o"></i>
+                                <span class="label label-danger" id="shake-icon">20</span>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li class="header">您有 20 条消息</li>
+                                <li>
+                                    <!-- Inner Menu: contains the notifications -->
+                                    <ul class="menu">
+                                        <!-- start notification -->
+                                        <li>
+                                            <a href="#">
+                                                <i class="fa fa-users text-aqua"></i> 5 条会议信息
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a href="#">
+                                                <i class="fa fa-warning text-yellow"></i> 会议纪要未完成！
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a href="#">
+                                                <i class="fa fa-warning text-red"></i> 5 条记录待审批
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a href="#">
+                                                <i class="fa fa-check text-green"></i> 25 条记录通过审批
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a href="#">
+                                                <i class="fa fa-check text-orange"></i> 系统登陆时间：9:00 AM
+                                            </a>
+                                        </li>
+                                        <!-- end notification -->
+                                    </ul>
+                                </li>
+                                <li class="footer"><a href="#">查看所有 >></a></li>
+                            </ul>
+                        </li>
+                        <!-- User Account Menu -->
+                        <li class="dropdown user user-menu">
+                            <!-- Menu Toggle Button -->
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                                <!-- The user image in the navbar-->
+                                <img src="sphz/dist/img/user2-160x160.png" class="user-image" alt="User Image">
+                                <!-- hidden-xs hides the username on small devices so only the image appears. -->
+                                <span class="hidden-xs">Admin</span>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <!-- The user image in the menu -->
+                                <li class="user-header">
+                                    <img src="sphz/dist/img/user2-160x160.png" class="img-circle" alt="User Image">
+
+                                    <p>
+                                        Admin
+                                        <small><i class="fa fa-circle text-success"></i> 超级管理员</small>
+                                    </p>
+                                </li>
+                                <!-- Menu Footer-->
+                                <li class="user-footer">
+                                    <div class="pull-left">
+                                        <a href="#" class="btn btn-default btn-flat">更改信息</a>
+                                    </div>
+                                    <div class="pull-right">
+                                        <a href="#" class="btn btn-default btn-flat">注销登录</a>
+                                    </div>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        </header>
+        <!-- Left side column. contains the logo and sidebar -->
+        <aside class="main-sidebar">
+
+            <!-- sidebar: style can be found in sidebar.less -->
+            <section class="sidebar">
+
+                <!-- Sidebar user panel (optional) -->
+                <!-- <div class="user-panel">
+                    <div class="pull-left image">
+                        <img src="dist/img/user2-160x160.png" class="img-circle" alt="User Image">
+                    </div>
+                    <div class="pull-left info">
+                        <p>Admin</p>
+                        <a href="#"><i class="fa fa-circle text-success"></i> 超级管理员</a>
+                    </div>
+                </div> -->
+
+                <!-- search form (Optional) -->
+                <!-- <form action="#" method="get" class="sidebar-form">
+                    <div class="input-group">
+                        <input type="text" name="q" class="form-control" placeholder="搜索...">
+                        <span class="input-group-btn">
+                            <button type="submit" name="search" id="search-btn" class="btn btn-flat"><i class="fa fa-search"></i></button>
+                        </span>
+                    </div>
+                </form> -->
+                <!-- /.search form -->
+
+                <!-- Sidebar Menu -->
+                <ul class="sidebar-menu" data-widget="tree">
+                    <li class="header">功能菜单</li>
+                    <!-- Optionally, you can add icons to the links -->
+                    <li class="active"><a href="#"><i class="fa fa-pencil-square"></i> <span>信息登记</span></a></li>
+                    <li><a href="#"><i class="fa fa-link"></i> <span>审核确认</span></a></li>
+                    <li><a href="#"><i class="fa fa-bar-chart"></i> <span>查询统计</span></a></li>
+                    <li><a href="#"><i class="fa fa-download"></i> <span>导出报表</span></a></li>
+                </ul>
+                <!-- /.sidebar-menu -->
+            </section>
+            <!-- /.sidebar -->
+        </aside>
+
+        <!-- Content Wrapper. Contains page content -->
+        <div class="content-wrapper">
+            <!-- Content Header (Page header) -->
+            <section class="content-header">
+                <h1>
+                    信息登记
+                    <small> 请按照格式规范输入以下信息</small>
+                </h1>
+            </section>
+
+            <!-- Main content -->
+            <section class="content container-fluid">
+                <!-- 申报类型 -->
+                <div class="box box-primary">
+                    <div class="box-header with-border">
+                        <h3 class="box-title text-blue box-select-title">申报类型</h3>
+
+                        <div class="box-select">
+                            <select class="form-control select2" style="width: 100%;">
+                                <option selected="selected">类型1</option>
+                                <option>类型2</option>
+                                <option>类型3</option>
+                                <option>类型4</option>
+                                <option>类型5</option>
+                                <option>类型6</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <!-- 项目信息 -->
+                        <div class="box box-warning">
+                            <div class="box-header with-border">
+                                <h3 class="box-title text-yellow">报建信息</h3>
+
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-warning btn-xs" data-widget=""><i class="fa fa-search"></i> 搜索</button>
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <div class="box-body">
+                                <form role="form">
+                                    <div class="form-group">
+                                        <label for="">项目编号</label>
+                                        <input type="text" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="">项目名称</label>
+                                        <input type="text" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="">建设位置</label>
+                                        <input type="text" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="">建设单位</label>
+                                        <input type="text" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="">组织机构代码</label>
+                                        <input type="text" class="form-control">
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-lg-6">
+                                            <div class="form-group">
+                                                <label for="">申请人姓名</label>
+                                                <input type="text" class="form-control">
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <div class="form-group">
+                                                <label for="">申请人电话</label>
+                                                <input type="text" class="form-control">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- 经办信息 -->
+                        <div class="box box-danger">
+                            <div class="box-header with-border">
+                                <h3 class="box-title text-red">经办信息</h3>
+
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <div class="box-body">
+                                <form role="form">
+                                    <div class="row">
+                                        <div class="col-lg-6">
+                                            <div class="form-group">
+                                                <label for="">承办部门</label>
+                                                <input type="text" class="form-control">
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <div class="form-group">
+                                                <label for="">经办人</label>
+                                                <input type="text" class="form-control">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-lg-6">
+                                            <div class="form-group">
+                                                <label for="">发文编号</label>
+                                                <input type="text" class="form-control">
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <div class="form-group">
+                                                <label for="">发文日期</label>
+                                                <input type="text" class="form-control">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="col-md-6">
+                        <!-- 详细信息 -->
+                        <div class="box box-success">
+                            <div class="box-header with-border">
+                                <h3 class="box-title text-green">发证信息</h3>
+
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <div class="box-body">
+                                <form role="form">
+                                    <div class="row">
+                                        <div class="col-lg-6">
+                                            <div class="form-group">
+                                                <label for="">用地性质名称</label>
+                                                <input type="text" class="form-control">
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <p class="form-label">用地面积</p>
+                                            <div class="form-group input-group">
+                                                <label for=""></label>
+                                                <input type="text" class="form-control">
+                                                <span class="input-group-addon addon-w">公顷</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-lg-6">
+                                            <p class="form-label">混合比例</p>
+                                            <div class="form-group input-group">
+                                                <label for=""></label>
+                                                <input type="text" class="form-control">
+                                                <span class="input-group-addon addon-w">.00</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <p class="form-label">控制高度</p>
+                                            <div class="form-group input-group">
+                                                <label for=""></label>
+                                                <input type="text" class="form-control">
+                                                <span class="input-group-addon">&nbsp;&nbsp;&nbsp;米</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-lg-6">
+                                            <p class="form-label">容积率</p>
+                                            <div class="form-group input-group">
+                                                <label for=""></label>
+                                                <input type="text" class="form-control">
+                                                <span class="input-group-addon">.00</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <p class="form-label">绿地率</p>
+                                            <div class="form-group input-group">
+                                                <label for=""></label>
+                                                <input type="text" class="form-control">
+                                                <span class="input-group-addon">&nbsp;.00</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-lg-6">
+                                            <p class="form-label">建筑密度</p>
+                                            <div class="form-group input-group">
+                                                <label for=""></label>
+                                                <input type="text" class="form-control">
+                                                <span class="input-group-addon">.00</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <p class="form-label">停车位数</p>
+                                            <div class="form-group input-group">
+                                                <label for=""></label>
+                                                <input type="text" class="form-control">
+                                                <span class="input-group-addon">&nbsp;&nbsp;&nbsp;个</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>海面城市要求</label>
+                                        <textarea class="form-control input-textarea"></textarea>
+                                    </div>
+                                    <p class="form-label">平面图纸</p>
+                                    <div class="form-group input-group input-group-sm">
+                                        <label for=""></label>
+                                        <input type="text" class="form-control">
+                                        <span class="input-group-btn">
+                                          <button type="button" class="btn btn-success btn-flat"><i class="fa fa-upload"></i></button>
+                                        </span>
+                                    </div>
+                                    <p class="form-label">红线范围</p>
+                                    <div class="form-group input-group input-group-sm">
+                                        <label for=""></label>
+                                        <input type="text" class="form-control">
+                                        <span class="input-group-btn">
+                                          <button type="button" class="btn btn-success btn-flat"><i class="fa fa-upload"></i></button>
+                                        </span>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+        <!-- /.content-wrapper -->
+
+        <!-- Main Footer -->
+        <footer class="main-footer">
+        </footer>
+    </div>
+    <!-- ./wrapper -->
+
+    <!-- REQUIRED JS SCRIPTS -->
+
+    <!-- jQuery 3 -->
+    <script src="sphz/bower_components/jquery/dist/jquery.min.js"></script>
+    <!-- Bootstrap 3.3.7 -->
+    <script src="sphz/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+    <!-- Select2 -->
+    <script src="sphz/bower_components/select2/dist/js/select2.full.min.js"></script>
+    <script src="sphz/bower_components/select2/dist/js/i18n/zh-CN.js"></script>
+    <!-- InputMask -->
+    <script src="sphz/plugins/input-mask/jquery.inputmask.js"></script>
+    <script src="sphz/plugins/input-mask/jquery.inputmask.date.extensions.js"></script>
+    <script src="sphz/plugins/input-mask/jquery.inputmask.extensions.js"></script>
+    <!-- date-range-picker -->
+    <!-- <script src="sphz/bower_components/moment/min/moment.min.js"></script> -->
+    <script src="sphz/bower_components/bootstrap-daterangepicker/daterangepicker.js"></script>
+    <!-- bootstrap datepicker -->
+    <script src="sphz/bower_components/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js"></script>
+    <!-- bootstrap time picker -->
+    <script src="sphz/plugins/timepicker/bootstrap-timepicker.min.js"></script>
+    <!-- SlimScroll -->
+    <script src="sphz/bower_components/jquery-slimscroll/jquery.slimscroll.min.js"></script>
+    <!-- iCheck 1.0.1 -->
+    <script src="sphz/plugins/iCheck/icheck.min.js"></script>
+    <!-- FastClick -->
+    <script src="sphz/bower_components/fastclick/lib/fastclick.js"></script>
+    <!-- AdminLTE App -->
+    <script src="sphz/dist/js/adminlte.min.js"></script>
+    <!-- AdminLTE for demo purposes -->
+    <script src="sphz/dist/js/demo.js"></script>
+    <!-- Page script -->
+    <script>
+        $(function() {
+            //Initialize
+            $('.select2').select2({
+                language: "zh-CN"
+            });
+
+            //iCheck for checkbox and radio inputs
+            $('input[type="checkbox"].minimal, input[type="radio"].minimal').iCheck({
+                    checkboxClass: 'icheckbox_minimal-blue',
+                    radioClass: 'iradio_minimal-blue'
+                })
+                //Red color scheme for iCheck
+            $('input[type="checkbox"].minimal-red, input[type="radio"].minimal-red').iCheck({
+                    checkboxClass: 'icheckbox_minimal-red',
+                    radioClass: 'iradio_minimal-red'
+                })
+                //Flat red color scheme for iCheck
+            $('input[type="checkbox"].flat-red, input[type="radio"].flat-red').iCheck({
+                checkboxClass: 'icheckbox_flat-green',
+                radioClass: 'iradio_flat-green'
+            })
+        })
+    </script>
+</body>
+
+</html>

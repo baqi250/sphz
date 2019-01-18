@@ -1,0 +1,37 @@
+
+/*内容发布区域*/
+.box .boxcenter{width:300px;height:150px;background:#fff;position:absolute;top:60px;left:360px;border:1px solid green;border-radius:6px;}
+.box .boxcenter .boxc_t{height:20px;line-height:20px;}
+.box .boxcenter .boxc_t h4{padding-left:20px;background:#3BBFB4;border-top-left-radius:6px;border-top-right-radius:6px;}
+.box .boxcenter .boxc_c{width:260px;height:80px;border:1px solid #A6C8FF;margin:8px auto;text-indent:10px;box-shadow:0 0 4px #A6C8FF;word-wrap:break-word;}
+.box .boxcenter .boxc_b{width:80px;height:30px;position:absolute;right:10px;bottom:8px;}
+.box .boxcenter .boxc_b a{font-size:14px;color:#fff;line-height:30px;background:#3bbfb4;border-radius:6px;display:block;text-align:center;text-decoration:none;}
+.box .boxcenter .boxc_b a:hover{background:#2C8E86;}
+
+.box .timeline{width:60px;height:4000px;position:relative;top:50px;left:60px;border-right:2px dotted #148e9c;} 
+
+
+/* .timeline .timeline_t{width:50px;height:50px;border-radius:50%;border:1px solid #fff;background:url("images/100.png") no-repeat;background-size:100%;} */
+.timeline .nextbox{width:300px;height:100px;position:relative;top:180px;left:60px;}
+
+ 
+/* .total{width:520px;height:100px;margin-top:30px;position:relative;left:-86px;top:180px;} */
+
+
+.c{width:472px;height:126px;margin-top:10px;position:relative;left:-80px;top:40px;}
+.c .a{width:380px;height:122px;background:transparent;border-radius:6px;font-size:12px;line-height:20px;text-indent:20px;word-break:break-all;position:relative;left:88px;top:-28px}
+.a .b{width:8px;height:8px;border-radius:50%;border:1px solid #fff;background:url("dian.png");position:relative;top:14px;left:-14px;}
+.report{height: 22px;border-radius: 6px;padding-left: 160px}
+
+
+#time{font-size:12px;color:#148e9c;}
+#hour{font-size:18px;color:#ababab;}
+/* #hour{font-size:12px;color:#92CADE;} */
+
+#leixing{width:60px;height: 22px;text-align: center;font:"微软雅黑";font-size: 14px;color:white;position:relative;top:10px;left:10px}
+
+#content{overflow: auto;color: #d0faff;}
+/*------------------------------------------------------
+	BOOTSTRAP OVERRIDING 
+--------------------------------------------------------*/
+.col-md-4, .col-md-5, .col-md-7, .col-md-8 { padding: 0; }

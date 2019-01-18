@@ -1,0 +1,206 @@
+﻿<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%
+	String path = request.getContextPath();
+	String basePath = request.getScheme() + "://"
+			+ request.getServerName() + ":" + request.getServerPort()
+			+ path + "/";
+%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<base href="<%=basePath%>">
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>蓝谷规划信息平台</title>
+<!-- Tell the browser to be responsive to screen width -->
+<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+<link rel="stylesheet" href="plugins/xha/plugins/bootstrap/dist/css/bootstrap.css">
+<!-- Font Awesome -->
+<link rel="stylesheet" href="plugins/xha/plugins/font-awesome/css/font-awesome.min.css">
+<!-- Ionicons -->
+<link rel="stylesheet" href="plugins/xha/plugins/Ionicons/css/ionicons.min.css">
+<!-- bootstrap datepicker -->
+<link rel="stylesheet" href="plugins/xha/plugins/bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css">
+<!-- iCheck for checkboxes and radio inputs -->
+<link rel="stylesheet" href="plugins/xha/plugins/iCheck/all.css">
+<!-- Select2 -->
+<link rel="stylesheet" href="plugins/xha/plugins/select2/dist/css/select2.min.css">
+<link rel="stylesheet" href="plugins/xha/plugins/select2/totree/select2totree.css">
+<!-- Theme style -->
+<link rel="stylesheet" href="plugins/xha/dist/css/AdminLTE.css">
+<!-- AdminLTE Skins. 色调更改 -->
+<link rel="stylesheet" href="plugins/xha/dist/css/skins/skin-blue.min.css">
+
+<!-- Custom CSS -->
+<link rel="stylesheet" href="plugins/xha/dist/css/pages/index.css">
+ <link rel="stylesheet" href="plugins/xha/dist/css/pages/project_statistics.css">
+<link rel="stylesheet" href="plugins/xha/plugins/layer/theme/default/layer.css">
+
+</head>
+<body class="hold-transition skin-blue sidebar-mini">
+
+	<!-- Content Header (Page header) -->
+		<section class="content-header">
+			<h4>
+				${pd.XMMC}项目建设情况汇总
+			</h4>
+		</section>
+	
+	<!-- Content Wrapper. Contains page content -->
+	<div class="content-wrapper1">
+		<!-- Main content -->
+		<section class="content container-fluid">
+			<table class="table table-condensed table-child">
+				<tr>
+					<td width="80px">项目名称</td>
+					<td>${pd.XMMC}</td>
+				</tr>
+				<tr>
+					<td>项目位置</td>
+					<td>${pd.baseMap.XMWZ}</td>
+				</tr>
+				<tr>
+					<td>建设单位</td>
+					<td>${pd.baseMap.JSDW}</td>
+				</tr>
+				<tr>
+					<td>用地性质</td>
+					<td>${pd.baseMap.YDXZ}</td>
+				</tr>
+				<tr>
+					<td colspan="2">建设情况：</td>
+				</tr>
+				<tr>
+					<td colspan="2">
+						<table class="table table-condensed table-child">
+							<tr style="font-weight:bold">
+								<td width="80px" >指标</td>
+								<td>条件</td>
+								<td width="300px">绿证</td>
+							</tr>
+							
+							<c:forEach items="${pd.contArray}" var="cont" varStatus="vs">
+								<tr>
+									<td>${cont.ZB}</td>
+									<td>${cont.TJ}</td>
+									<td>${cont.JS}</td>
+								</tr>
+							</c:forEach>
+							<!-- <tr>
+								<td>用地面积</td>
+								<td></td>
+								<td></td>
+							</tr>
+							<tr>
+								<td>容积率</td>
+								<td></td>
+								<td></td>
+							</tr>
+							<tr>
+								<td>建筑密度</td>
+								<td></td>
+								<td></td>
+							</tr>
+							<tr>
+								<td>绿地率</td>
+								<td></td>
+								<td></td>
+							</tr>
+							<tr>
+								<td>停车位</td>
+								<td></td>
+								<td></td>
+							</tr> -->
+						</table>
+					</td>
+				</tr>
+				
+				<tr>
+					<td colspan="2">已有分期：</td>
+				</tr>
+				<tr>
+					<td colspan="2">
+						<table class="table table-condensed table-child">
+							<tr>
+								<td>分期项目名称</td>
+								<td>用地面积</td>
+								<td>建筑面积</td>
+								<td>容积率</td>
+								<td>建筑密度</td>
+								<td>绿地率</td>
+								<td>停车位</td>
+							</tr>
+							<c:choose>
+							<c:when test="${not empty pd.subArray}">
+								<c:forEach items="${pd.subArray}" var="sub" varStatus="vs">
+									<tr>
+										<td>${sub.XMMC}</td>
+										<td>${sub.YDMJ}</td>
+										<td>${sub.JZMJ}</td>
+										<td>${sub.RJL}</td>
+										<td>${sub.JZMD}</td>
+										<td>${sub.LDL}</td>
+										<td>${sub.TCW}</td>
+									</tr>
+								</c:forEach>
+								
+							</c:when>
+							<c:otherwise>
+								<tr>
+									<td colspan="100" style="text-align:center">无数据</td>
+								</tr>
+							</c:otherwise>
+						</c:choose>
+						</table>
+					</td>
+				</tr>
+				
+			</table>
+		</section>
+
+	</div>
+
+        <!-- jQuery 3 -->
+  	<script src="plugins/xha/plugins/jquery/dist/jquery.min.js"></script>
+    <script src="plugins/xha/plugins/jquery/dist/jquery-form.js"></script>
+    <script src="static/js/jquery.tips.js"></script>
+    
+    <!-- Bootstrap 3.3.7 -->
+    <script src="plugins/xha/plugins/bootstrap/dist/js/bootstrap.min.js"></script>
+    <!-- Select2 -->
+    <script src="plugins/xha/plugins/select2/dist/js/select2.full.min.js"></script>
+    <script src="plugins/xha/plugins/select2/dist/js/i18n/zh-CN.js"></script>
+    <script src="plugins/xha/plugins/select2/totree/select2totree.js"></script>
+    <!-- InputMask -->
+    <script src="plugins/xha/plugins/inputmask/dist/inputmask/inputmask.js"></script>
+    <script src="plugins/xha/plugins/inputmask/dist/inputmask/inputmask.extensions.js"></script>
+    <script src="plugins/xha/plugins/inputmask/dist/inputmask/inputmask.numeric.extensions.js"></script>
+    <script src="plugins/xha/plugins/inputmask/dist/inputmask/inputmask.date.extensions.js"></script>
+    <script src="plugins/xha/plugins/inputmask/dist/inputmask/inputmask.phone.extensions.js"></script>
+    <script src="plugins/xha/plugins/inputmask/dist/inputmask/jquery.inputmask.js"></script>
+    <script src="plugins/xha/plugins/inputmask/dist/inputmask/phone-codes/phone.js"></script>
+    <script src="plugins/xha/plugins/inputmask/dist/inputmask/phone-codes/phone-be.js"></script>
+    <!-- bootstrap datepicker -->
+    <script src="plugins/xha/plugins/bootstrap-datepicker/dist/js/bootstrap-datepicker.js"></script>
+    <!-- SlimScroll -->
+    <script src="plugins/xha/plugins/jquery-slimscroll/jquery.slimscroll.min.js"></script>
+    <!-- iCheck 1.0.1 -->
+    <script src="plugins/xha/plugins/iCheck/icheck.min.js"></script>
+    <!-- FastClick -->
+    <script src="plugins/xha/plugins/fastclick/lib/fastclick.js"></script>
+    <!-- AdminLTE App -->
+    <script src="plugins/xha/dist/js/adminlte.min.js"></script>
+    <script src="plugins/xha/plugins/layer/layer.js"></script>
+   
+    
+    <script type="text/javascript">
+    
+    </script>
+
+  
+</body>
+
+</html>

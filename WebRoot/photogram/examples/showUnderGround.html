@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+    <title>管廊BIM演示</title>
+    <link href="../Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+    <link rel="stylesheet" href="../layui/css/layui.css"  media="all">
+    <link href="./css/pretty.css" rel="stylesheet">
+    <script src="./js/jquery.min.js"></script>
+    <script src="./js/bootstrap.min.js"></script>
+    <script src="./js/bootstrap-select.min.js"></script>
+    <script src="./js/slider.js"></script>
+    <script src="./js/config.js"></script>
+    <script src="./js/supermap/SuperMap-7.1-11828.js"></script>
+    <script type="text/javascript" src="./js/require.min.js" data-main="js/main"></script>
+    <script src="../layui/layui.js" charset="utf-8"></script>
+    <style>
+        html, body, #cesiumContainer {
+            width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden;background-color: #000000;
+        }
+        #toolbar_data,#toolbar_data_yb,.bg_input {
+	        background: rgba(193, 188, 188, 0.3);
+	        padding: 4px;
+	        border-radius: 4px;
+			width:280px;
+	    }
+	    #toolbar_checkbox {
+	        background: rgba(242, 242, 242, 0.8);
+	        padding: 4px;
+	        border-radius: 4px;
+			width:120px;		
+			font-size:16px;
+    	} 
+	    #toolbar_data,#toolbar_data_yb input {
+	        vertical-align: middle;
+	        padding-top: 2px;
+	        padding-bottom: 2px;
+			padding-left:5px;
+	    }
+	    .layui-btn-primary{
+	    	border: 1px solid #efece6;
+	    }
+	    #toolbar_checkbox p{
+	    	padding:3px;
+	    }
+    </style>
+</head>
+<body>
+<div id="cesiumContainer"></div>
+<div id='loadingbar' class="spinner">
+    <div class="spinner-container container1">
+        <div class="circle1"></div>
+        <div class="circle2"></div>
+        <div class="circle3"></div>
+        <div class="circle4"></div>
+    </div>
+    <div class="spinner-container container2">
+        <div class="circle1"></div>
+        <div class="circle2"></div>
+        <div class="circle3"></div>
+        <div class="circle4"></div>
+    </div>
+    <div class="spinner-container container3">
+        <div class="circle1"></div>
+        <div class="circle2"></div>
+        <div class="circle3"></div>
+        <div class="circle4"></div>
+    </div>
+</div>
+<div id="toolbar" style="position: absolute;left: 5px;top: 5px;display: none;">
+    <input type="range" min="0" max="1" step="0.02" title="调整地表透明度" data-bind="value: globeAlpha, valueUpdate: 'input'">
+    <input type="text" size="5" data-bind="value: globeAlpha">
+</div> 
+<div id='toolbar_fly' style="position : absolute;left : 15px; top : 15px;display: none;" >
+    <button  id="play" class="layui-btn layui-btn-normal layui-btn-radius" style="width:100px" onmousedown="addBtnClass(this.id)"  onmouseup="removeBtnClass(this.id)" >浏览管廊</button>
+    <button  id="pause" class="layui-btn layui-btn-warm layui-btn-radius" style="width:100px" onmousedown="addBtnClass(this.id)"  onmouseup="removeBtnClass(this.id)" >暂停</button>
+    <button  id="stop" class="layui-btn layui-btn-danger layui-btn-radius" style="width:100px" onmousedown="addBtnClass(this.id)"  onmouseup="removeBtnClass(this.id)" >终止飞行</button>
+    <button id="ctrl_man" class="layui-btn layui-btn-radius" style="width:100px;display: none;">人物漫游</button>
+</div>
+<!-- add tab start -->
+<div id="sb" class="layui-tab layui-tab-card" style="position : absolute;left:15px;top: 75px;display: none;">
+  <ul class="layui-tab-title">
+    <li class="layui-this">控制柜<span class="layui-badge">1</span></li>
+    <li>仪表<span class="layui-badge">1</span></li>
+    <li>摄像头<span class="layui-badge">2</span></li>
+  </ul>
+  <div class="layui-tab-content" style="height: 100px;">
+    <div id="layerDemo" class="layui-tab-item layui-show">
+		 <button id="yb1" class="layui-btn layui-btn-primary" data-method="setTop" style="width:250px;background-color: rgba(241, 226, 226, 0.7);color: #080808">A1防火分区控制柜</button>
+	</div>
+    <div id="layerDemo" class="layui-tab-item">
+		<button id="yb2" class="layui-btn layui-btn-primary" data-method="setTop2" style="width:250px;background-color: rgba(241, 226, 226, 0.7);color: #080808" >A2防火分区仪表</button>
+	</div>
+    <div id="layerDemo" class="layui-tab-item">
+		<button id="yb3" class="layui-btn layui-btn-primary" data-method="setTop3" style="width:250px;background-color: rgba(241, 226, 226, 0.7);color: #080808" >A1防火分区摄像头</button></br>
+		<button id="mx" class="layui-btn layui-btn-primary"  style="width:250px;background-color: rgba(241, 226, 226, 0.7);color: #080808" >初始化模型</button>
+	</div>
+    <div class="layui-tab-item">备用</div>
+  </div>
+</div>
+<!-- add tab end  -->
+<!-- <div id="sb" style="position : absolute;right:8%;top: 15px;display: none;">	
+	<button id="yb1" type="button" style="width:100px" class="button black">控制柜</button>
+	<button id="yb2" type="button" style="width:100px" class="button black">仪表</button>
+	<button id="yb3" type="button" style="width:100px" class="button black">摄像头</button>
+	<button id="mx" type="button" style="width:100px" class="button black">初始化模型</button>
+</div> -->
+<audio controls="controls" id="audio" style="position : absolute;left : 55px; top : 55px;display: none;">
+	<source src="./media/alarm.mp3" type="audio/mpeg" />
+	Your browser does not support the audio tag.
+</audio>
+<div id="toolbar_checkbox"  style="position:absolute;right : 0.5%; bottom : 1%;display: none;">
+	<p><input id="hot" name="line" type="checkbox">
+	<label>供热管线</label></p>
+	<p><input id="water" name="line" type="checkbox">
+	<label>中水管线</label></p>
+	<p><input id="gongshui" name="line" type="checkbox">
+	<label>供水管线</label></p>
+</div> 
+
+<!--  <form class="layui-form" action="" style="position:absolute;right : 2%; bottom : 2%;">
+    <div class="layui-input-block">
+      <input type="checkbox" id="hot" name="line" title="供热管线">
+      <input type="checkbox" id="water" name="line" title="中水管线">
+      <input type="checkbox" id="gongshui" name="line" title="供水管线">
+    </div>  
+</form> -->
+
+<div id="toolbar_data" style="position:absolute;left:10px;top:280px;display:none;">
+	<table>
+	    <tbody style="font-size:15px">
+	    	<tr>
+		        <td style="padding:3px;">设备名称</td>
+		        <td>           
+		            <input id="name" type="text" size="18" readonly="readonly"  style="text-align:center;background-color:rgba(155, 155, 155, 0.8);border-bottom-color: rgb(148, 149, 141);border-right-color: rgb(148, 149, 141);" data-bind="value: hueShift">
+		        </td>
+		    </tr>
+		    <tr>
+		        <td style="padding:3px;">经&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;度</td>
+		        <td>            
+		            <input id="lon_data"  type="text" size="18" readonly="readonly" style="text-align:center; background-color: rgba(242, 242, 242, 0.7)" data-bind="value: saturationShift">
+		        </td>
+		    </tr>
+		    <tr>
+		        <td style="padding:3px;">纬&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;度</td>
+		        <td>           
+		            <input id="lat_data"  type="text" size="18" readonly="readonly" style="text-align:center; background-color: rgba(242, 242, 242, 0.7)" data-bind="value: brightnessShift">
+		        </td>
+		    </tr>
+			<tr>
+		        <td style="padding:3px;">设备状态</td>
+		        <td>           
+		            <input id="data"  type="text" size="18" readonly="readonly" style="text-align:center" data-bind="value: brightnessShift">
+		        </td>
+		    </tr>
+		</tbody>
+	</table>
+</div>
+<div id="toolbar_data_yb" style="position:absolute;left:10px;top:280px;display:none;">
+	<table>
+	    <tbody style="font-size:15px" >
+	    	<tr>
+		        <td style="padding:3px;">设备名称</td>
+		        <td>           
+		            <input id="name_yb"  type="text" size="18" readonly="readonly" style="text-align:center;background-color:rgba(155, 155, 155, 0.8);border-bottom-color: rgb(148, 149, 141);border-right-color: rgb(148, 149, 141);" data-bind="value: hueShift">
+		        </td>
+		    </tr>
+		    <tr>
+		        <td style="padding:3px;">经&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;度</td>
+		        <td>            
+		            <input id="lon_data_yb"  type="text" size="18" readonly="readonly" style="text-align:center;background-color: rgba(242, 242, 242, 0.7)" data-bind="value: saturationShift">
+		        </td>
+		    </tr>
+		    <tr>
+		        <td style="padding:3px;">纬&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;度</td>
+		        <td>           
+		            <input id="lat_data_yb"  type="text" size="18" readonly="readonly" style="text-align:center;background-color: rgba(242, 242, 242, 0.7)" data-bind="value: brightnessShift">
+		        </td>
+		    </tr>
+			<tr>
+		        <td style="padding:3px;">仪表数据</td>
+		        <td>           
+		            <input id="data_yb"  type="text" size="18" readonly="readonly" style="text-align:center" data-bind="value: brightnessShift">
+		        </td>
+		    </tr>
+		</tbody>
+	</table>
+</div>
+<!-- <iframe src="device_iframe.html" style="position : absolute;left : 10px; top : 450px;height:400px;width:600px"></iframe> -->
+<blockquote id="bubble" class="bubble">
+	<p id="name"></p>
+	<p id="des" class="word"></p>
+	<p id="lon"></p>
+	<p id="lat"></p>
+</blockquote>
+<script>
+    function onload(Cesium) {
+    	var flyManager;
+    	var number = 10;//仪表data的数据
+    	var fj;
+    	var zm;
+    	var sxt;
+    	var ids = [];
+    	var ids_alpha = [];//用于在对象旁边透明显示的构件
+    	var lons,lats,heights,heads,pits;
+        //初始化viewer部件
+        var viewer = new Cesium.Viewer('cesiumContainer');
+        var globe = viewer.scene.globe;
+        var scene = viewer.scene;
+        var DoSqlQuery; 
+        scene.skyAtmosphere.show = true;
+        scene.skyBox.show = true;
+        //设置开启地下场景
+        viewer.scene.undergroundMode = true;
+        viewer.scene.screenSpaceCameraController.minimumZoomDistance = -100;//设置相机最小缩放距离,距离地表-1000米
+        //设置弹窗
+		var infoboxContainer = document.getElementById("bubble");
+		viewer.customInfobox = infoboxContainer;
+		var canvas = scene.canvas;
+		
+		document.getElementById("ctrl_man").onclick = function(){
+		 <!--键盘控制人行走 START -->
+        canvas.setAttribute('tabindex', '0'); 
+		canvas.addEventListener('click', function() {
+		    canvas.focus();
+		});
+		canvas.focus();       
+        var pathPosition = new Cesium.SampledPositionProperty();
+        var camera = viewer.camera;
+		var controller = scene.screenSpaceCameraController;
+		var r = 0;
+		var center = new Cesium.Cartesian3();
+        
+        var hpRoll = new Cesium.HeadingPitchRoll();
+		var hpRange = new Cesium.HeadingPitchRange();
+		var speed = 0.05;
+		var deltaRadians = Cesium.Math.toRadians(3.0);
+        
+        var position = Cesium.Cartesian3.fromDegrees(120.00018,35.999995,19.579088);
+		var speedVector = new Cesium.Cartesian3();
+		var fixedFrameTransform = Cesium.Transforms.localFrameToFixedFrameGenerator('north', 'west');
+		
+		var planePrimitive = scene.primitives.add(Cesium.Model.fromGltf({
+		    url : '../SampleData/models/CesiumMan/Cesium_Man.glb',
+		    modelMatrix : Cesium.Transforms.headingPitchRollToFixedFrame(position, hpRoll, Cesium.Ellipsoid.WGS84, fixedFrameTransform),
+		    minimumPixelSize : 128
+		}));
+						
+		planePrimitive.readyPromise.then(function(model) {
+		    // Play and loop all animations at half-speed
+		    model.activeAnimations.addAll({
+		        speedup : 0.5,
+		        loop : Cesium.ModelAnimationLoop.REPEAT
+		    });
+		
+		    // Zoom to model
+		    r = 2.0 * Math.max(model.boundingSphere.radius, camera.frustum.near);
+		    controller.minimumZoomDistance = r * 0.5;
+		    Cesium.Matrix4.multiplyByPoint(model.modelMatrix, model.boundingSphere.center, center);
+		    var heading = Cesium.Math.toRadians(230.0);
+		    var pitch = Cesium.Math.toRadians(-20.0);
+		    hpRange.heading = heading;
+		    hpRange.pitch = pitch;
+		    hpRange.range = r * 50.0;
+			console.log("center***"+center);
+			//console.log("hpRange***"+hpRange);(-2580003.613476901,4468730.125737717,3748976.1805645768)
+		    camera.lookAt("(-2580003.613476901,4468730.125737717,3748976.1805645768)", hpRange);
+		});
+		
+		document.addEventListener('keydown', function(e) {
+		    switch (e.keyCode) {
+		        case 40:
+		            if (e.shiftKey) {
+		                // speed down
+		                speed = Math.max(--speed, 0);
+		            } else {
+		                // pitch down
+		                hpRoll.pitch -= deltaRadians;
+		                if (hpRoll.pitch < -Cesium.Math.TWO_PI) {
+		                    hpRoll.pitch += Cesium.Math.TWO_PI;
+		                }
+		            }
+		            break;
+		        case 38:
+		            if (e.shiftKey) {
+		                // speed up
+		                speed = Math.min(++speed, 1);
+		            } else {
+		                // pitch up
+		                hpRoll.pitch += deltaRadians;
+		                if (hpRoll.pitch > Cesium.Math.TWO_PI) {
+		                    hpRoll.pitch -= Cesium.Math.TWO_PI;
+		                }
+		            }
+		            break;
+		        case 39:
+		            if (e.shiftKey) {
+		                // roll right
+		                hpRoll.roll += deltaRadians;
+		                if (hpRoll.roll > Cesium.Math.TWO_PI) {
+		                    hpRoll.roll -= Cesium.Math.TWO_PI;
+		                }
+		            } else {
+		                // turn right
+		                hpRoll.heading += deltaRadians;
+		                if (hpRoll.heading > Cesium.Math.TWO_PI) {
+		                    hpRoll.heading -= Cesium.Math.TWO_PI;
+		                }
+		            }
+		            break;
+		        case 37:
+		            if (e.shiftKey) {
+		                // roll left until
+		                hpRoll.roll -= deltaRadians;
+		                if (hpRoll.roll < 0.0) {
+		                    hpRoll.roll += Cesium.Math.TWO_PI;
+		                }
+		            } else {
+		                // turn left
+		                hpRoll.heading -= deltaRadians;
+		                if (hpRoll.heading < 0.0) {
+		                    hpRoll.heading += Cesium.Math.TWO_PI;
+		                }
+		            }
+		            break;
+		        default:
+		    }
+		});
+		
+		viewer.scene.preRender.addEventListener(function(scene, time) {
+		
+		    speedVector = Cesium.Cartesian3.multiplyByScalar(Cesium.Cartesian3.UNIT_X, speed / 10, speedVector);
+		    position = Cesium.Matrix4.multiplyByPoint(planePrimitive.modelMatrix, speedVector, position);
+		    pathPosition.addSample(Cesium.JulianDate.now(), position);
+		    Cesium.Transforms.headingPitchRollToFixedFrame(position, hpRoll, Cesium.Ellipsoid.WGS84, fixedFrameTransform, planePrimitive.modelMatrix);
+		
+		    planePrimitive.readyPromise.then(function(model) { //是否跟随目标
+		        // Zoom to model
+		        Cesium.Matrix4.multiplyByPoint(planePrimitive.modelMatrix, planePrimitive.boundingSphere.center, center);
+		        hpRange.heading = hpRoll.heading;
+		        hpRange.pitch = hpRoll.pitch;
+		        //console.log(center);  //{x: -2580003.613476901, y: 4468730.125737717, z: 3748976.1805645768}  最佳位置之一
+		        //center = {"-2580003.613476901","4468730.125737717","999999748976.1805645768"};
+		        camera.lookAt(center, hpRange);
+		       // camera.lookAt("(-2580003.613476901,4468730.125737717,999999748976.1805645768)", hpRange);
+		    })
+		});		
+    }
+	        <!--键盘控制人行走 END -->
+		
+		
+		
+		<!--键盘控制Camera start -->
+        canvas.setAttribute('tabindex', '0'); 
+        canvas.onclick = function() {
+		    canvas.focus();
+		};
+		var ellipsoid = scene.globe.ellipsoid;
+		scene.screenSpaceCameraController.enableRotate = true;
+		scene.screenSpaceCameraController.enableTranslate = true;
+		scene.screenSpaceCameraController.enableZoom = true;
+		scene.screenSpaceCameraController.enableTilt = true;
+		scene.screenSpaceCameraController.enableLook = true;
+		var startMousePosition;
+		var mousePosition;
+		var flags = {
+		    looking : false,
+		    moveForward : false,
+		    moveBackward : false,
+		    moveUp : false,
+		    moveDown : false,
+		    moveLeft : false,
+		    moveRight : false
+		};
+		
+		function getFlagForKeyCode(keyCode) {
+		    switch (keyCode) {
+		    case 'W'.charCodeAt(0):
+		        return 'moveForward';
+		    case 'S'.charCodeAt(0):
+		        return 'moveBackward';
+		    case 'Q'.charCodeAt(0):
+		        return 'moveUp';
+		    case 'E'.charCodeAt(0):
+		        return 'moveDown';
+		    case 'D'.charCodeAt(0):
+		        return 'moveRight';
+		    case 'A'.charCodeAt(0):
+		        return 'moveLeft';
+		    default:
+		        return undefined;
+		    }
+		}		
+		
+		document.addEventListener('keydown', function(e) {
+		    var flagName = getFlagForKeyCode(e.keyCode);
+		    if (typeof flagName !== 'undefined') {
+		        flags[flagName] = true;
+		    }
+		}, false);
+		document.addEventListener('keyup', function(e) {
+		    var flagName = getFlagForKeyCode(e.keyCode);
+		    if (typeof flagName !== 'undefined') {
+		        flags[flagName] = false;
+		    }
+		}, false);
+		
+		viewer.clock.onTick.addEventListener(function(clock) {
+		    var camera = viewer.camera;
+		
+		    if (flags.looking) {
+		        var width = canvas.clientWidth;
+		        var height = canvas.clientHeight;
+		
+		        // Coordinate (0.0, 0.0) will be where the mouse was clicked.
+		        var x = (mousePosition.x - startMousePosition.x) / width;
+		        var y = -(mousePosition.y - startMousePosition.y) / height;
+		
+		        var lookFactor = 0.05;
+		        camera.lookRight(x * lookFactor);
+		        camera.lookUp(y * lookFactor);
+		    }
+		
+		    // Change movement speed based on the distance of the camera to the surface of the ellipsoid.
+		    var cameraHeight = ellipsoid.cartesianToCartographic(camera.position).height;
+		    var moveRate = cameraHeight / 50.0;
+		
+		    if (flags.moveForward) {
+		        camera.moveForward(moveRate);
+		    }
+		    if (flags.moveBackward) {
+		        camera.moveBackward(moveRate);
+		    }
+		    if (flags.moveUp) {
+		        camera.moveUp(moveRate);
+		    }
+		    if (flags.moveDown) {
+		        camera.moveDown(moveRate);
+		    }
+		    if (flags.moveLeft) {
+		        camera.moveLeft(moveRate);
+		    }
+		    if (flags.moveRight) {
+		        camera.moveRight(moveRate);
+		    }
+		});			
+		<!--键盘控制Camera end -->					
+		
+		var widget = viewer.cesiumWidget;
+		globe.globeAlpha = 1;		      
+        //添加S3M图层服务
+        var promise = viewer.scene.addS3MTilesLayerByScp(URL_CONFIG.GLBIM,{
+            name : 'pipeline',//
+            bReleaseColor: false,
+            cullEnabled : false  //双面渲染，false为打开双面渲染
+        });    				  
+		$('#loadingbar').remove();
+	try {
+		Cesium.when(promise, function (layer) {
+		if(!scene.pickPositionSupported){
+			alert('不支持深度拾取,属性查询功能无法使用！');
+		}
+		//设置属性查询参数
+		layer.setQueryParameter({
+			url: 'http://192.168.109.7:8090/iserver/services/data---1--GL/rest/data',
+			//url: 'http://10.16.4.111:8090/iserver/services/data-GL/rest/data',
+			dataSourceName: 'gl01',
+			dataSetName: 'gl01',
+			keyWord: 'SMID'
+		});
+		//设置相机视角
+		scene.camera.setView({
+			//将经度、纬度、高度的坐标转换为笛卡尔坐标
+			destination : Cesium.Cartesian3.fromDegrees(120.00018,35.999995,19.579088),
+			orientation : {
+				heading : 256.259976*(3.14/180),
+				pitch :  (-4.354027)*(3.14/180),
+				roll :0.0
+			}
+		});
+		
+		//飞行控制
+	 	var routes = new Cesium.RouteCollection();
+    	//添加fpf飞行文件，fpf由SuperMap iDesktop生成
+    	var fpfUrl = './SampleData/fpf/gl02_fly.fpf';
+    	routes.fromFile(fpfUrl);
+	    //初始化飞行管理
+	    flyManager = new Cesium.FlyManager({
+	        scene : scene,
+	        routes : routes
+	    });
+     	flyManager.speed = 500;
+	    
+	     
+		}, function (e) {
+			if (widget._showRenderLoopErrors) {
+				var title = '渲染时发生错误，已停止渲染。';
+				widget.showErrorPanel(title, undefined, e);
+			}
+		});		
+	}
+	catch (e) {
+		if (widget._showRenderLoopErrors) {
+			var title = '渲染时发生错误，已停止渲染。';
+			widget.showErrorPanel(title, undefined, e);
+		}
+	}    
+	
+	$('#play').click(function(){
+		var layer=scene.layers.find("pipeline");
+		layer.setObjsVisible ([],false);
+		setNoSelect();
+		document.getElementById("toolbar_data").style.display="none";
+		document.getElementById("toolbar_data_yb").style.display="none";
+		layer.refresh();			
+        flyManager && flyManager.play();
+    });
+    $('#pause').click(function(){
+        flyManager && flyManager.pause();
+    });
+    $('#stop').click(function(){
+        flyManager && flyManager.stop();
+    });
+    $('#toolbar_fly').show(); 
+    $('#sb').show(); 
+	$('#toolbar_checkbox').show();
+	
+	
+	
+    //添加自定义infobox
+	var title = document.getElementById("name");
+	var des = document.getElementById("des");
+	var lon = document.getElementById("lon");
+	var lat = document.getElementById("lat");
+	//注册鼠标点击事件
+	viewer.pickEvent.addEventListener(function(feature){
+		var name = Cesium.defaultValue(feature.MODELNAME,'');
+		var SMID = Cesium.defaultValue(feature.SMID,'');
+		var longitude1 = Cesium.defaultValue(feature.LONGITUDE,'');
+		var latitude1 = Cesium.defaultValue(feature.LATITUDE,'');
+		var longitude=parseFloat(longitude1).toFixed(4);
+		var latitude=parseFloat(latitude1).toFixed(4);	
+		//alert(name);
+		title.innerText = "名称："+name;
+		des.innerText = "SMID："+SMID;
+		lon.innerText = "经度："+longitude;
+		lat.innerText = "纬度："+latitude;
+	});    
+    DoSqlQuery=function (attr) 
+    {
+          //  var attributeFilter = document.getElementById("query").value;
+            var attributeFilter=attr;
+			//getNumber();
+			//debugger;
+			//globe.globeAlpha = 0.2;	
+            var getFeatureParam, getFeatureBySQLService, getFeatureBySQLParams;
+            var queryDatasetName="gl01";
+			console.log("attr",attributeFilter);
+            getFeatureParam = new SuperMap.REST.FilterParameter({
+                attributeFilter: attributeFilter
+            });
+            getFeatureBySQLParams = new SuperMap.REST.GetFeaturesBySQLParameters({
+                queryParameter: getFeatureParam,
+                toIndex:-1,
+                datasetNames: ["gl01:" + queryDatasetName]
+            });
+            getFeatureBySQLService = new SuperMap.REST.GetFeaturesBySQLService("http://192.168.109.7:8090/iserver/services/data---1--GL/rest/data", {
+                eventListeners: {"processCompleted": onQueryComplete, "processFailed": processFailed}});
+
+            getFeatureBySQLService.processAsync(getFeatureBySQLParams);                       
+
+    }
+    var onQueryComplete=function(queryEventArgs){
+    	//debugger;
+		//globe.globeAlpha = 0.2;	
+    	var resultFeatures = queryEventArgs.originResult.features;
+    	console.log("gl",resultFeatures);
+    	//alert(resultFeatures[0].fieldValues[10]);
+    	viewer.camera.flyTo({
+		    destination : Cesium.Cartesian3.fromDegrees(lons, lats, heights),//定位到yb1  -6.375655
+		     orientation : {
+		        heading : heads,//直接用idesktop取出的数据即可  
+		        pitch : pits,//-3.067442,-25.315765->smid535//用idesktop取出的数据-90即可
+		        roll : 0.0
+		    } 
+		});
+    	
+		var layer=scene.layers.find("pipeline");//这里的参数不是iserver中的图层名称，而是addS3MTilesLayerByScp方法中定义的图层名称，如果是用open的方法打开模型，则这里的参数就是iserver中的名称
+		//console.log(layer);
+		//layer.removeAllObjsColor();
+		
+		var color = new Cesium.Color(0.98, 0.969, 0.968, 0.11);//alpha必须要大于0.1才能显示
+		//var  ids = [id,537,538,539,540,541];		
+		layer.setObjsColor(ids_alpha, color);//设置对象颜色
+		var color2 = new Cesium.Color(0, 0, 0, 0);
+		scene.backgroundColor = color2;
+		layer.setObjsVisible (ids,true);   
+		//document.getElementById("name").value=resultFeatures[0].fieldValues[10];
+		document.getElementById("lon_data").value=resultFeatures[0].fieldValues[11];
+		document.getElementById("lat_data").value=resultFeatures[0].fieldValues[12];
+		document.getElementById("lon_data_yb").value=resultFeatures[0].fieldValues[11];
+		document.getElementById("lat_data_yb").value=resultFeatures[0].fieldValues[12];
+		//document.getElementById("data").value=number;
+		 	
+    	
+    }
+    var processFailed=function(e){
+    	
+    	alert(e.error.errorMsg);    	
+    }
+    
+    var getNumber = function(){
+    	//debugger;
+    	$.ajax({
+    		type:'POST',
+    		url:'http://localhost:8080/bim_mvc/bim/getnum.do',
+    		success:function(data){
+    			number=data;
+    		}
+    	});
+    }
+    var getControlData = function(){   	
+    	$.ajax({
+    		type:'POST',
+    		url:'http://localhost:8080/bim_mvc/bim/getcontroldata.do',
+    		dataType:'json',
+    		success:function(data){ //0是关闭1是开启  fj风机 zm照明
+    			//console.log(data);
+    			if(data.fj==0){
+    				fj = "关闭";
+    			}else{
+    				fj = "开启";
+    			}
+    			if(data.zm==0){
+    				zm = "关闭";
+    			}else{
+    				zm = "开启";
+    			}
+    		}
+    	});
+    }
+    var getSXTData = function(){   	//摄像头
+    	$.ajax({
+    		type:'POST',
+    		url:'http://localhost:8080/bim_mvc/bim/getsxtdata.do',
+    		dataType:'json',
+    		success:function(data){ //0是正常1是异常
+    			//console.log(data);
+    			if(data.sxt==0){
+    				sxt = "正常";
+    			}else{
+    				sxt = "异常";
+    			}
+    			
+    		}
+    	});
+    }
+    getNumber();   
+    getControlData();
+    getSXTData();
+    var setColor = function(str){
+    	document.getElementById("yb2").style.color = str;  	
+    }  
+  	
+    var setNoSelect = function(){
+    	document.getElementById("hot").checked = false;
+		document.getElementById("water").checked = false;
+		document.getElementById("gongshui").checked = false;		
+		hot_ids = [];
+		water_ids = [];
+		gongshui_ids = []; 
+		//console.log("obj_ids",obj_ids);
+    }
+    
+    setInterval(function() {
+    	getNumber();
+    	if(number>16){
+    		setColor("red");
+    		document.getElementById("data_yb").value="仪表数据："+number+"℃";
+    		document.getElementById("data_yb").style.backgroundColor="red";
+    		document.getElementById("audio").play();
+        }else{
+        	setColor("white");
+        	document.getElementById("data_yb").value="仪表数据："+number+"℃";
+        	document.getElementById("data_yb").style.backgroundColor="white";
+        	document.getElementById("audio").currentTime = 0;
+        	document.getElementById("audio").pause();
+        }
+    }, 1000*10);
+	document.getElementById("yb1").onclick = function(){
+		document.getElementById("toolbar_data_yb").style.display="none";
+		document.getElementById("data").style.backgroundColor="white";
+		setNoSelect();
+		var layer=scene.layers.find("pipeline");
+		ids = [561,564,562,563,566,565,375,374]; 
+		ids_alpha = [1686,101,102,103,105,106,107,620,736,746,756,674,673,1285,1255,977,254,253,252,293,294,295,296]; //1690外墙
+		ids = ids.concat(ids_alpha);
+		lons = 119.99935;
+		lats = 35.999831;
+		heights = 15.482155;
+		heads = 1.717844*(3.14/180);
+		pits = -9.11145*(3.14/180);	
+		getControlData();
+		DoSqlQuery("SMID=561");
+		document.getElementById("name").value="控制柜";
+		document.getElementById("data").value="风机："+fj+"  "+"照明："+zm;
+		document.getElementById("toolbar_data").style.display="block"; 
+
+		layer.removeAllObjsColor();
+		layer.refresh();		
+    }    
+
+	document.getElementById("yb2").onclick = function(){		
+		document.getElementById("toolbar_data").style.display="none";
+		setNoSelect();
+		var layer=scene.layers.find("pipeline");
+		ids = [377,350,338,349,226,225,351];
+		ids_alpha = [659,1042,1044,649,629];
+		ids = ids.concat(ids_alpha);
+		lons = 119.999781;
+		lats = 35.999897;
+		heights = 16.767657;
+		heads = 12.037615*(3.14/180);
+		pits = -27.306108*(3.14/180);
+		document.getElementById("name_yb").value="仪表";
+		document.getElementById("data_yb").value="仪表数据："+number+"℃";	
+		document.getElementById("audio").currentTime = 0;
+    	document.getElementById("audio").pause();
+		document.getElementById("toolbar_data_yb").style.display="block"; 
+		DoSqlQuery("SMID=377");
+		layer.removeAllObjsColor();
+		layer.refresh();
+    }  	
+	
+	document.getElementById("yb3").onclick = function(){
+		document.getElementById("toolbar_data_yb").style.display="none";
+		setNoSelect();
+		var layer=scene.layers.find("pipeline");
+		ids = [878,877,876];
+		ids_alpha = [1677,1689,755,1254,1284,1314,1344,1374,1364,1354,938,939,940,941,942,1679,1652,1650,1684,1681,1224,510,511,1686];
+		ids = ids.concat(ids_alpha);
+		lons = 119.999681;
+		lats = 35.999887;
+		heights = 17.200345;
+		heads = 260.75853*(3.14/180);
+		pits = -24.077177*(3.14/180);
+		getSXTData();
+		DoSqlQuery("SMID=878");
+		document.getElementById("name").value="摄像头";
+		document.getElementById("data").value="摄像头状态："+sxt;
+		//document.getElementById("data_yb").style.backgroundColor="red";
+		if(sxt == "异常"){
+			document.getElementById("data").style.backgroundColor="red";
+		}else{
+			document.getElementById("data").style.backgroundColor="white";
+		}
+		document.getElementById("toolbar_data").style.display="block"; 		
+		layer.removeAllObjsColor();
+		layer.refresh();
+    } 
+    
+	document.getElementById("mx").onclick = function(){
+		var layer=scene.layers.find("pipeline");
+		layer.setObjsVisible ([],false);
+		setNoSelect();
+		document.getElementById("toolbar_data").style.display="none";
+		document.getElementById("toolbar_data_yb").style.display="none";
+		viewer.camera.flyTo({
+		    destination : Cesium.Cartesian3.fromDegrees(120.00018,35.999995,19.579088),
+			orientation : {
+				heading : 256.259976*(3.14/180),
+				pitch :  (-4.354027)*(3.14/180),
+				roll :0.0
+			}
+		}); 
+		layer.removeAllObjsColor();		
+		layer.refresh();
+    } 
+    
+    var obj_ids = [];
+    var hot_ids = [];
+    var water_ids = [];
+    var gongshui_ids = [];
+    document.getElementById("hot").onchange = function(){
+    	document.getElementById("toolbar_data_yb").style.display="none";
+    	document.getElementById("toolbar_data").style.display="none";
+    	if(document.getElementById("hot").checked){
+    		hot_ids = [619,620,628,621,622,623,624,625,626,627,629,637,636,635,634,633,632,631,638,630,574,
+    				  583,575,584,576,585,877,586,578,587,579,588,580,589,581,590,582,591];
+    		obj_ids = hot_ids.concat(water_ids,gongshui_ids);
+    	}else{
+    		hot_ids = [];
+    		obj_ids = hot_ids.concat(water_ids,gongshui_ids);
+    	}  
+    	var layer=scene.layers.find("pipeline");
+    	layer.removeAllObjsColor();
+    	//console.log("obj_hot",hot_ids);
+    	//alert(layer);
+		layer.setObjsVisible (obj_ids,true); 
+		layer.refresh(); 	
+    }
+    document.getElementById("water").onchange = function(){
+    	document.getElementById("toolbar_data_yb").style.display="none";
+    	document.getElementById("toolbar_data").style.display="none";
+    	if(document.getElementById("water").checked){
+    		water_ids = [659,660,667,668,661,662,663,664,665,666,
+    					596,597,598,599,600,601,602,603,604];
+    		obj_ids = hot_ids.concat(water_ids,gongshui_ids);
+    	}else{
+    		water_ids = [];
+    		obj_ids = hot_ids.concat(water_ids,gongshui_ids);
+    	}    	
+    	var layer=scene.layers.find("pipeline");
+    	layer.removeAllObjsColor();
+    	//console.log("obj_ids",obj_ids);
+		layer.setObjsVisible (obj_ids,true);  	
+		layer.refresh();
+   }
+    document.getElementById("gongshui").onchange = function(){
+    	document.getElementById("toolbar_data_yb").style.display="none";
+    	document.getElementById("toolbar_data").style.display="none";
+    	if(document.getElementById("gongshui").checked){
+    		gongshui_ids = [592,593,594,595,605,606,607,608,609,610,611,612,613,614,615,616,617,618,639,640,641,642,643,644,
+    		                645,646,647,648,649,650,651,652,653,654,655,656,657,658];
+    		obj_ids = hot_ids.concat(water_ids,gongshui_ids);
+    	}else{
+    		gongshui_ids = [];
+    		obj_ids = hot_ids.concat(water_ids,gongshui_ids);
+    	}  
+    	var layer=scene.layers.find("pipeline");
+    	layer.removeAllObjsColor();
+		layer.setObjsVisible (obj_ids,true); 
+		layer.refresh(); 	
+    }
+    
+  }
+</script>
+<!-- <script src="../layui/layui.js" charset="utf-8"></script> -->
+<script type="text/javascript" src="../static/js/bimjs/changeClass.js"></script>
+<script>
+layui.use(['element','layer'], function(){
+  var $ = layui.jquery
+  ,element = layui.element//Tab的切换功能，切换事件监听等，需要依赖element模块
+  ,layer = layui.layer; 
+  
+  //触发事件
+  var active = {
+    setTop: function(){
+      var that = this; 
+      //多窗口模式，层叠置顶
+      layer.open({
+        type: 2 //此处以iframe举例
+        ,title: 'A1防火分区控制柜'
+        ,area: ['570px', '350px']
+        ,shade: 0
+        ,maxmin: true
+        ,offset: 'lb'
+        ,content: 'device_iframe.html'
+        //,btn: ['关闭'] //只是为了演示
+        /* ,yes: function(){
+          layer.closeAll(); 
+        }   */      
+        ,zIndex: layer.zIndex //重点1
+        ,success: function(layero){
+          layer.setTop(layero); //重点2
+        }
+      });
+    }
+  ,setTop2: function(){
+      var that = this; 
+      //多窗口模式，层叠置顶
+      layer.open({
+        type: 2 //此处以iframe举例
+        ,title: 'A2防火分区仪表'
+        ,area: ['570px', '350px']
+        ,shade: 0
+        ,maxmin: true
+        ,offset: 'lb'
+        ,content: 'yb_iframe.html'   
+        ,zIndex: layer.zIndex //重点1
+        ,success: function(layero){
+          layer.setTop(layero); //重点2
+        }
+      });
+    }
+  ,setTop3: function(){
+      var that = this; 
+      //多窗口模式，层叠置顶
+      layer.open({
+        type: 2 //此处以iframe举例
+        ,title: 'A1防火分区摄像头'
+        ,area: ['760px', '350px']
+        ,shade: 0
+        ,maxmin: true
+        ,offset: 'lb'
+        ,content: 'video_iframe.html'   
+        ,zIndex: layer.zIndex //重点1
+        ,success: function(layero){
+          layer.setTop(layero); //重点2
+        }
+      });
+    }
+  };
+  
+  $('#layerDemo .layui-btn').on('click', function(){
+    var othis = $(this), method = othis.data('method');
+    active[method] ? active[method].call(this, othis) : '';
+  });
+  
+});
+
+</script>
+</body>
+</html>

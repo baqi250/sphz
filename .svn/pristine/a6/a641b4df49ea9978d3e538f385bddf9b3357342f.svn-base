@@ -1,0 +1,222 @@
+﻿<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%
+	String path = request.getContextPath();
+	String basePath = request.getScheme() + "://"
+			+ request.getServerName() + ":" + request.getServerPort()
+			+ path + "/";
+%>
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+	<base href="<%=basePath%>">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>蓝谷规划信息平台</title>
+    <!-- Tell the browser to be responsive to screen width -->
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="stylesheet" href="plugins/xha/plugins/bootstrap/dist/css/bootstrap.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="plugins/xha/plugins/font-awesome/css/font-awesome.min.css">
+    <!-- Ionicons -->
+    <link rel="stylesheet" href="plugins/xha/plugins/Ionicons/css/ionicons.min.css">
+    <!-- bootstrap datepicker -->
+    <link rel="stylesheet" href="plugins/xha/plugins/bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css">
+    <!-- DataTables -->
+    <link rel="stylesheet" href="plugins/xha/plugins/datatables.net-bs/css/dataTables.bootstrap.css">
+    <!-- iCheck for checkboxes and radio inputs -->
+    <link rel="stylesheet" href="plugins/xha/plugins/iCheck/all.css">
+    <!-- Select2 -->
+    <link rel="stylesheet" href="plugins/xha/plugins/select2/dist/css/select2.min.css">
+    <!-- Theme style -->
+    <link rel="stylesheet" href="plugins/xha/dist/css/AdminLTE.css">
+    <!-- AdminLTE Skins. 色调更改 -->
+    <link rel="stylesheet" href="plugins/xha/dist/css/skins/skin-blue.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="plugins/xha/dist/css/pages/index.css">
+    <link rel="stylesheet" href="plugins/xha/dist/css/pages/map.css">
+    <link rel="stylesheet" href="plugins/xha/plugins/layer/theme/default/layer.css">
+    
+    <!-- <link href="plugins/zTree/3.5/css/metroStyle/metroStyle.css" media="screen" rel="stylesheet" type="text/css" /> -->
+    <link href="plugins/ArcGIS/3.17/esri/css/esri.css" rel="stylesheet" type="text/css" />
+    <link href="plugins/ArcGIS/3.17/dijit/themes/claro/claro.css" rel="stylesheet" type="text/css" /> 
+    
+    <!--  <link rel="stylesheet" type="text/css" href="http://localhost:8081/arcgis_js_api/library/3.17/3.17/dijit/themes/tundra/tundra.css"/>
+    <link rel="stylesheet" type="text/css" href="http://localhost:8081/arcgis_js_api/library/3.17/3.17/esri/css/esri.css" /> -->
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+  <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+  <![endif]-->
+</head>
+
+<body class="hold-transition skin-blue sidebar-mini">
+ <!-- Content Wrapper. Contains page content -->
+ 		<div class="button-group">
+			<button id="draw" class="btn btn-block btn-primary btn-success">空间统计</button>
+			<button id="clear" class="btn btn-block btn-primary btn-danger">清除</button>
+		</div>
+		<div id="legendDiv1" style="position:absolute;"></div>
+	    <div class="tundra" id="mapContent">
+			<div id="mapDiv"></div>
+		</div>
+		
+	<!-- REQUIRED JS SCRIPTS -->
+
+      <!-- jQuery 3 -->
+  <!--   <script src="plugins/xha/plugins/jquery/dist/jquery.min.js "></script> -->
+  
+    <script type="text/javascript" src="plugins/ArcGIS/3.17/init.js"></script>
+    <script src="plugins/jquery/jquery.js"></script>
+  
+     <script type="text/javascript">
+        dojo.require("esri.map");
+        var map,toolbar,a={},legendLayers=[];
+        require([
+        "esri/map",
+        "esri/toolbars/draw",
+        "esri/graphic",
+        "esri/layers/ArcGISTiledMapServiceLayer",
+        "esri/layers/FeatureLayer",
+        "esri/tasks/query",
+        "esri/tasks/QueryTask",
+        "esri/symbols/SimpleFillSymbol",
+        "esri/geometry/Point",
+        "esri/dijit/Legend"
+       
+        ],function(Map,Draw,Graphic,ArcGISTiledMapServiceLayer,FeatureLayer,Query,QueryTask,SimpleFillSymbol,Point,Layer,Legend){
+	        map=new Map("mapDiv",{
+	         	logo:false,
+	            nav:false,
+	            slider:false
+	        });
+        	var click=dojo.connect(map,"onClick",excuteQueryTask);
+        	
+	        var myTiledMapServiceLayer=new ArcGISTiledMapServiceLayer("http://192.168.109.44:6080/arcgis/rest/services/lsgg/lgygyx/MapServer");
+	        map.addLayer(myTiledMapServiceLayer);
+	        var myFeatureLayer=new FeatureLayer("http://192.168.109.44:6080/arcgis/rest/services/lsgg/spxm1/MapServer/0",{
+	        	mode:FeatureLayer.MODE_SNAPSHOT,
+	        	outFields:["项目唯一码"]
+	        });
+	        map.addLayer(myFeatureLayer);
+	        legendLayers.push({layer:myFeatureLayer,title:'图例'});
+	        var legend=new esri.dijit.Legend({
+	        	map:map,
+	        	layerInfos:legendLayers,
+	        	arrangement:2
+	        },"legendDiv1");
+	      
+	        legend.startup();
+          	$("#legendDiv1").css("position","absolute");
+	        var gratemp=new esri.layers.GraphicsLayer();//记录绘制多边形图层
+	        map.addLayer(gratemp);
+	        var graresult=new esri.layers.GraphicsLayer();//记录绘制多边形图层
+	        map.addLayer(graresult);
+	        var graspatial=new esri.layers.GraphicsLayer();//记录绘制多边形图层
+	        map.addLayer(graspatial);
+	        var symbol=new esri.symbol.SimpleFillSymbol(esri.symbol.SimpleFillSymbol.STYLE_SOLID,new esri.symbol.SimpleLineSymbol(esri.symbol.SimpleLineSymbol.STYLE_SOLID,
+	        	new dojo.Color([255,0,0]),2),
+	        	new dojo.Color([255,255,0,0.5]));
+	        	
+	       	var queryTask=new QueryTask("http://192.168.109.44:6080/arcgis/rest/services/lsgg/spxm1/MapServer/0");
+	        var query=new Query();
+	        query.returnGeometry=true;
+	        query.outFields=["项目名称","项目唯一码","所属项目唯一码"];
+	        var fillSymbol=new esri.symbol.SimpleFillSymbol();
+	        fillSymbol.setColor(new dojo.Color([105,25,160,1]));
+	        
+	        var fillSymbolSpatial=new esri.symbol.SimpleFillSymbol();
+	        fillSymbolSpatial.setColor(new dojo.Color([155,105,100,1]));
+	        	
+	        map.on("load",createToolbar);
+	        function createToolbar(themap){
+	        	toolbar=new Draw(map);
+	        	toolbar.on("draw-end",addToMap);
+	        }
+	        function addToMap(evt){
+	        	$("#mapDiv_layers").css('cursor','default');
+	        	toolbar.deactivate();
+	        	var graphic=new Graphic(evt.geometry,symbol);
+	        	gratemp.add(graphic);
+	        	excuteQueryTaskByDrawPolygon(evt);
+	        	click=dojo.connect(map,"onClick",excuteQueryTask);
+	        }
+	        dojo.connect(dojo.byId("draw"),"click",function(evt){
+	        	$("#mapDiv_layers").css('cursor','crosshair');
+	        	dojo.disconnect(click);
+	        	gratemp.clear();
+	        	graresult.clear();
+	        	toolbar.activate(Draw.POLYGON);
+	        });
+	        dojo.connect(dojo.byId("clear"),"click",function(evt){
+	        	gratemp.clear();
+	        	graresult.clear();
+	        	graspatial.clear();
+	        });
+	       
+	        function excuteQueryTask(evt){
+	        	query.geometry=evt.mapPoint;
+	        	query.where=null;
+	        	queryTask.execute(query,function(fs){
+			        	console.log(fs.features[0]);
+			        	if(null!=fs.features&&fs.features.length>0){
+			        	$(window.parent.document).contents().find("#dataIframe")[0].contentWindow.queryProject(fs.features[0].attributes["项目唯一码"],fs.features[0].attributes["所属项目唯一码"]);
+			        	graresult.clear();
+			        	var feature=fs.features[0];
+			        	feature.setSymbol(fillSymbol);
+			        	graresult.add(feature);
+		        	}
+	        	});
+	        }
+	        
+            function excuteQueryTaskByDrawPolygon(evt){
+	        	query.geometry=evt.geometry;
+	        	query.where=null;
+	        	queryTask.execute(query,function(fs){
+		        	graresult.clear();
+		        	var features= fs.features;
+		        	var xmwyms="";
+		        	var ssxmwyms="";
+		        	if(null!=features&&features.length>0){
+			        	for(var i=0;i<features.length;i++){
+			        		var feature=features[i];
+				        	feature.setSymbol(fillSymbol);
+				        	graresult.add(feature);
+				        	xmwyms+=feature.attributes["项目唯一码"]+",";
+				        	ssxmwyms+=feature.attributes["所属项目唯一码"]+",";
+			        	}
+			        	$(window.parent.document).contents().find("#dataIframe")[0].contentWindow.queryProject(xmwyms.substring(0,xmwyms.length-1),ssxmwyms.substring(0,ssxmwyms.length-1));
+			        	parent.showLayer(xmwyms.substring(0,xmwyms.length-1),ssxmwyms.substring(0,ssxmwyms.length-1));
+		        	}
+	        	});
+	        }
+           a.excuteQueryTaskByXMWYM= function(xmwym){
+            	var whereStr="项目唯一码  ='"+xmwym+"'";
+	        	query.where=whereStr;
+	        	query.geometry=null;
+	        	queryTask.execute(query,function(fs){
+	        		graspatial.clear();
+		        	var features= fs.features;
+		        	if(null!=features&&features.length>0){
+			        	for(var i=0;i<features.length;i++){
+			        		var feature=features[i];
+				        	feature.setSymbol(fillSymbolSpatial);
+				        	graspatial.add(feature);
+			        	}
+		            	var center= features[0].geometry.getExtent().getCenter();
+		            	var point=new Point(center.x,center.y,map.spatialReference);
+		            	map.centerAndZoom(point,5);
+		        	}
+	        	});
+	        }
+	        
+        })
+     </script>
+</body>
+
+</html>

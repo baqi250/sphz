@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>layui</title>
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <link rel="stylesheet" href="../layui/css/layui.css"  media="all">
+  <script type="text/javascript" src="../static/js/jquery-1.11.2.min.js"></script>
+  <!-- 注意：如果你直接复制所有代码到本地，上述css路径需要改成你本地的 -->
+</head>
+<body>
+            
+<fieldset class="layui-elem-field site-demo-button">
+  <legend>还可以是圆角按钮</legend>
+  <div>
+    <button id="btn" class="layui-btn layui-btn-radius layui-btn-lg" onmousedown="addBtnClass(this.id)"  onmouseup="removeBtnClass(this.id)">默认按钮</button>
+    <button id="btn2" class="layui-btn layui-btn-normal layui-btn-radius" onmousedown="addBtnClass(this.id)" onmouseup="removeBtnClass(this.id)">百搭按钮</button>
+    <button class="layui-btn layui-btn-warm layui-btn-radius">暖色按钮</button>
+  </div>
+</fieldset>
+
+          
+<script src="../layui/layui.js" charset="utf-8"></script>
+<script type="text/javascript" src="../static/js/bimjs/changeClass.js"></script>
+
+</body>
+</html>

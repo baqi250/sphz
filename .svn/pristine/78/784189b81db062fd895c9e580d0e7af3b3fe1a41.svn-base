@@ -1,0 +1,10 @@
+package com.lggh.service.photo360;
+
+import java.util.List;
+
+import com.lggh.entity.Page;
+import com.lggh.util.PageData;
+
+public interface PhotoService {
+	public List<PageData> listData(Page page)throws Exception;
+}

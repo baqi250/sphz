@@ -1,0 +1,146 @@
+package com.lggh.controller.sphz.report;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang.math.RandomUtils;
+import org.bson.Document;
+import org.springframework.stereotype.Component;
+
+import com.lggh.util.DateUtil;
+import com.lggh.util.MongoDBUtil;
+import com.mongodb.MongoClient;
+import com.mongodb.client.FindIterable;
+
+@Component
+public class ReportController  {
+	private MongoClient mongoClient;
+	public List<Map<String,Object>> loadReportData(String dsName,String datasetName,Map<String,Object>parameters){
+		List<Map<String,Object>> list=new ArrayList<Map<String,Object>>();
+		for(int i=0;i<100;i++){
+			Map<String,Object> m=new HashMap<String,Object>();
+			m.put("id",i);
+			m.put("name", RandomStringUtils.random(10,true,false));
+			m.put("salary", RandomUtils.nextInt(10000)+i);
+			list.add(m);
+		}
+		return list;
+	}
+	
+	//规划许可建筑面积表
+	public List<Map<String,Object>>loadGhxkjzmDataj (String dsName,String datasetName,Map<String,Object>parameters){
+		System.out.println(parameters);
+		List<Map<String,Object>> list=new ArrayList<Map<String,Object>>();
+		List<Map<String, Object>> fawenList=new ArrayList<Map<String,Object>>();
+		Document document = new Document();
+		document.append("FWLXID", "f727c923cfb94566841812b4fb78e4b8");
+		document.append("FWRQ", new Document("$gte",DateUtil.getBeginDataOfMonth()).append("$lte", DateUtil.getEndDataOfMonth()));
+		fawenList = MongoDBUtil.getFawenList(document);
+		double zjzmj=MongoDBUtil.jsjzl(fawenList);
+		//System.out.println(zjzmj);
+		document.put("FWLXID","424008dcbf0b4d80938883d31feafc93");
+		fawenList = MongoDBUtil.getFawenList(document);
+		double[] gxArray= MongoDBUtil.jsgxl(fawenList);
+		double gxcd =gxArray[0] ;
+		double gxmj = gxArray[1];
+		
+		document.put("FWLXID","af1cef1c384f4b5387987f0bdc830724");
+		fawenList = MongoDBUtil.getFawenList(document);
+		double[] dlArray= MongoDBUtil.jsdll(fawenList);
+		double dlcd = dlArray[0];
+		double dlmj= dlArray[1];
+		
+		document.put("FWRQ", new Document("$gte",DateUtil.getBeginDataOfYear()).append("$lte", DateUtil.getEndDataOfYear()));
+		document.put("FWLXID", "f727c923cfb94566841812b4fb78e4b8");
+		fawenList = MongoDBUtil.getFawenList(document);
+		double zjzmj_year = MongoDBUtil.jsjzl(fawenList);
+		
+		document.put("FWLXID","424008dcbf0b4d80938883d31feafc93");
+		fawenList = MongoDBUtil.getFawenList(document);
+		gxArray = MongoDBUtil.jsgxl(fawenList);
+		double gxcd_year = gxArray[0];
+		double gxmj_year = gxArray[1];
+		
+		document.put("FWLXID","af1cef1c384f4b5387987f0bdc830724");
+		fawenList = MongoDBUtil.getFawenList(document);
+		dlArray= MongoDBUtil.jsdll(fawenList);
+		double dlcd_year = dlArray[0];
+		double dlmj_year = dlArray[1];
+		
+		Map<String,Object> m=new HashMap<String,Object>();
+		m.put("zjzmj",zjzmj);
+		m.put("gxmj",gxmj);
+		m.put("gxcd",gxcd);
+		m.put("dlcd",dlcd);
+		m.put("total_month",zjzmj+gxmj+dlcd);
+		
+		m.put("zjzmj_year",zjzmj_year);
+		m.put("gxmj_year",gxmj_year);
+		m.put("gxcd_year",gxcd_year);
+		m.put("dlcd_year",dlcd_year);
+		m.put("total_year",new BigDecimal(zjzmj_year+gxmj_year+dlcd_year+""));
+		list.add(m);
+		return list;
+	}
+	
+	//规划许可建筑面积表
+		public List<Map<String,Object>>loadCxghxkglData1 (String dsName,String datasetName,Map<String,Object>parameters){
+			List<Map<String,Object>> list=new ArrayList<Map<String,Object>>();
+			List<Map<String, Object>> fawenList=new ArrayList<Map<String,Object>>();
+			Document document = new Document();
+			document.append("FWLXID", "f727c923cfb94566841812b4fb78e4b8");
+			document.append("FWRQ", new Document("$gte",DateUtil.getBeginDataOfMonth()).append("$lte", DateUtil.getEndDataOfMonth()));
+			fawenList = MongoDBUtil.getFawenList(document);
+			double zjzmj=MongoDBUtil.jsjzl(fawenList);
+			//System.out.println(zjzmj);
+			document.put("FWLXID","424008dcbf0b4d80938883d31feafc93");
+			fawenList = MongoDBUtil.getFawenList(document);
+			double[] gxArray= MongoDBUtil.jsgxl(fawenList);
+			double gxcd =gxArray[0] ;
+			double gxmj = gxArray[1];
+			
+			document.put("FWLXID","af1cef1c384f4b5387987f0bdc830724");
+			fawenList = MongoDBUtil.getFawenList(document);
+			double[] dlArray= MongoDBUtil.jsdll(fawenList);
+			double dlcd = dlArray[0];
+			double dlmj= dlArray[1];
+			
+			document.put("FWRQ", new Document("$gte",DateUtil.getBeginDataOfYear()).append("$lte", DateUtil.getEndDataOfYear()));
+			document.put("FWLXID", "f727c923cfb94566841812b4fb78e4b8");
+			fawenList = MongoDBUtil.getFawenList(document);
+			double zjzmj_year = MongoDBUtil.jsjzl(fawenList);
+			
+			document.put("FWLXID","424008dcbf0b4d80938883d31feafc93");
+			fawenList = MongoDBUtil.getFawenList(document);
+			gxArray = MongoDBUtil.jsgxl(fawenList);
+			double gxcd_year = gxArray[0];
+			double gxmj_year = gxArray[1];
+			
+			document.put("FWLXID","af1cef1c384f4b5387987f0bdc830724");
+			fawenList = MongoDBUtil.getFawenList(document);
+			dlArray= MongoDBUtil.jsdll(fawenList);
+			double dlcd_year = dlArray[0];
+			double dlmj_year = dlArray[1];
+			
+			Map<String,Object> m=new HashMap<String,Object>();
+			m.put("zjzmj",zjzmj);
+			m.put("gxmj",gxmj);
+			m.put("gxcd",gxcd);
+			m.put("dlcd",dlcd);
+			m.put("total_month",zjzmj+gxmj+dlcd);
+			
+			m.put("zjzmj_year",zjzmj_year);
+			m.put("gxmj_year",gxmj_year);
+			m.put("gxcd_year",gxcd_year);
+			m.put("dlcd_year",dlcd_year);
+			m.put("total_year",new BigDecimal(zjzmj_year+gxmj_year+dlcd_year+""));
+			list.add(m);
+			return list;
+		}
+	
+	
+}
